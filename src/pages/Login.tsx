@@ -99,8 +99,11 @@ export default function Login() {
             </Button>
           </form>
 
-          <p className="text-xs text-muted-foreground mt-6 text-center">
-            Don't have an account? Ask your mess manager to create one for you.
+          <p className="text-sm text-muted-foreground mt-6 text-center">
+            নতুন ব্যবহারকারী?{" "}
+            <a href="/signup" className="text-primary font-medium hover:underline">
+              রেজিস্টার করুন
+            </a>
           </p>
         </div>
 

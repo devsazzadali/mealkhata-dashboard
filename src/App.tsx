@@ -28,6 +28,7 @@ import JoinRequests from "./pages/admin/JoinRequests";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
@@ -41,7 +42,8 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<RoleRedirect />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/home" element={<RoleRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route
