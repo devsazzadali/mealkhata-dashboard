@@ -23,6 +23,7 @@ import Settings from "./pages/admin/Settings";
 import MyDashboard from "./pages/boarder/MyDashboard";
 import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
+import Call from "./pages/Call";
 import JoinRequests from "./pages/admin/JoinRequests";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
