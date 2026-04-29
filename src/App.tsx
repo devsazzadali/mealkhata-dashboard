@@ -17,6 +17,9 @@ import Meals from "./pages/admin/Meals";
 import Expenses from "./pages/admin/Expenses";
 import Deposits from "./pages/admin/Deposits";
 import Balance from "./pages/admin/Balance";
+import Stocks from "./pages/admin/Stocks";
+import Notices from "./pages/admin/Notices";
+import Settings from "./pages/admin/Settings";
 import MyDashboard from "./pages/boarder/MyDashboard";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
@@ -61,9 +64,9 @@ const App = () => (
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="deposits" element={<Deposits />} />
                 <Route path="balance" element={<Balance />} />
-                <Route path="stock" element={<PlaceholderPage title="Stock" description="Rice, oil, gas and grocery inventory" />} />
-                <Route path="notices" element={<PlaceholderPage title="Notices" description="Announcements pinned to all boarders" />} />
-                <Route path="settings" element={<PlaceholderPage title="Settings" description="Mess settings, members and preferences" />} />
+                <Route path="stock" element={<Stocks />} />
+                <Route path="notices" element={<Notices />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
 
               {/* Boarder */}
