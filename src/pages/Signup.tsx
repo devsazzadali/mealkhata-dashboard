@@ -15,7 +15,6 @@ const schema = z.object({
   full_name: z.string().trim().min(2, "Enter your name").max(80),
   phone: z.string().refine(isValidBdPhone, "Enter a valid mobile (017XXXXXXXX)"),
   password: z.string().min(6, "At least 6 characters"),
-  mess_name: z.string().trim().min(2, "Enter your mess name").max(80),
 });
 type Vals = z.infer<typeof schema>;
 
@@ -49,23 +48,9 @@ export default function Signup() {
       });
       if (signInErr) throw signInErr;
 
-      // 3. Bootstrap mess + assign mess_admin role
-      const { data: { session } } = await supabase.auth.getSession();
-      const bootRes = await fetch(`${FUNCTIONS_URL}/bootstrap-mess`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ mess_name: vals.mess_name }),
-      });
-      const bootJson = await bootRes.json();
-      if (!bootRes.ok) throw new Error(bootJson.error || "Mess setup failed");
-
-      toast.success("Welcome to MealKhata!");
-      // Force a profile reload by reloading
-      window.location.href = "/app";
+      toast.success("Account created!");
+      // Onboarding lets the user choose Create or Join a mess.
+      window.location.href = "/onboarding";
     } catch (e: any) {
       toast.error(e.message || "Something went wrong");
     } finally {
@@ -87,8 +72,8 @@ export default function Signup() {
           <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-glow mb-3">
             <UtensilsCrossed className="w-7 h-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Start your mess</h1>
-          <p className="text-sm text-muted-foreground mt-1">Create your manager account</p>
+          <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+          <p className="text-sm text-muted-foreground mt-1">Then create or join a mess</p>
         </div>
 
         <div className="glass rounded-2xl p-6 sm:p-7 shadow-lg space-y-4">
@@ -96,10 +81,9 @@ export default function Signup() {
             <Field id="full_name" label="Your Name" placeholder="Md. Karim" reg={register("full_name")} err={errors.full_name?.message} />
             <Field id="phone" label="Mobile Number" placeholder="017XXXXXXXX" reg={register("phone")} err={errors.phone?.message} />
             <Field id="password" type="password" label="Password" placeholder="••••••••" reg={register("password")} err={errors.password?.message} />
-            <Field id="mess_name" label="Mess Name" placeholder="Sonali Mess" reg={register("mess_name")} err={errors.mess_name?.message} />
 
             <Button type="submit" disabled={submitting} className="w-full h-11 gradient-primary text-primary-foreground font-medium shadow-md hover:shadow-glow transition-all">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Mess & Continue"}
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create account & continue"}
             </Button>
           </form>
         </div>

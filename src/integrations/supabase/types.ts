@@ -229,6 +229,45 @@ export type Database = {
           },
         ]
       }
+      join_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          mess_id: string
+          message: string | null
+          requested_name: string
+          requested_phone: string
+          status: Database["public"]["Enums"]["join_request_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          mess_id: string
+          message?: string | null
+          requested_name: string
+          requested_phone: string
+          status?: Database["public"]["Enums"]["join_request_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          mess_id?: string
+          message?: string | null
+          requested_name?: string
+          requested_phone?: string
+          status?: Database["public"]["Enums"]["join_request_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_entries: {
         Row: {
           boarder_id: string
@@ -326,6 +365,65 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_reads: {
+        Row: {
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_pinned: boolean
+          mess_id: string
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean
+          mess_id: string
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean
+          mess_id?: string
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       messes: {
         Row: {
@@ -678,6 +776,7 @@ export type Database = {
     Enums: {
       app_role: "super_admin" | "mess_admin" | "boarder"
       boarder_status: "active" | "inactive" | "left"
+      join_request_status: "pending" | "approved" | "rejected"
       mess_status: "active" | "suspended" | "trial"
       payment_method: "cash" | "bkash" | "nagad" | "bank"
       stock_txn_type: "in" | "out"
@@ -811,6 +910,7 @@ export const Constants = {
     Enums: {
       app_role: ["super_admin", "mess_admin", "boarder"],
       boarder_status: ["active", "inactive", "left"],
+      join_request_status: ["pending", "approved", "rejected"],
       mess_status: ["active", "suspended", "trial"],
       payment_method: ["cash", "bkash", "nagad", "bank"],
       stock_txn_type: ["in", "out"],

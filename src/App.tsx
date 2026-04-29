@@ -21,6 +21,9 @@ import Stocks from "./pages/admin/Stocks";
 import Notices from "./pages/admin/Notices";
 import Settings from "./pages/admin/Settings";
 import MyDashboard from "./pages/boarder/MyDashboard";
+import Profile from "./pages/Profile";
+import Chat from "./pages/Chat";
+import JoinRequests from "./pages/admin/JoinRequests";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
@@ -66,6 +69,9 @@ const App = () => (
                 <Route path="balance" element={<Balance />} />
                 <Route path="stock" element={<Stocks />} />
                 <Route path="notices" element={<Notices />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="join-requests" element={<JoinRequests />} />
+                <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
@@ -79,6 +85,8 @@ const App = () => (
                 }
               >
                 <Route index element={<MyDashboard />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="profile" element={<Profile />} />
               </Route>
 
               {/* Super admin (placeholder for now) */}
