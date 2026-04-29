@@ -13,6 +13,10 @@ import Onboarding from "./pages/Onboarding";
 import RoleRedirect from "./pages/RoleRedirect";
 import MessDashboard from "./pages/admin/MessDashboard";
 import Boarders from "./pages/admin/Boarders";
+import Meals from "./pages/admin/Meals";
+import Expenses from "./pages/admin/Expenses";
+import Deposits from "./pages/admin/Deposits";
+import Balance from "./pages/admin/Balance";
 import MyDashboard from "./pages/boarder/MyDashboard";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import NotFound from "./pages/NotFound";
@@ -52,9 +56,10 @@ const App = () => (
               >
                 <Route index element={<MessDashboard />} />
                 <Route path="boarders" element={<Boarders />} />
-                <Route path="meals" element={<PlaceholderPage title="Meals" description="Daily meal tracking and per-meal cost calculation" />} />
-                <Route path="expenses" element={<PlaceholderPage title="Expenses" description="Daily expenses with category breakdowns" />} />
-                <Route path="deposits" element={<PlaceholderPage title="Deposits" description="Boarder payments and balance updates" />} />
+                <Route path="meals" element={<Meals />} />
+                <Route path="expenses" element={<Expenses />} />
+                <Route path="deposits" element={<Deposits />} />
+                <Route path="balance" element={<Balance />} />
                 <Route path="stock" element={<PlaceholderPage title="Stock" description="Rice, oil, gas and grocery inventory" />} />
                 <Route path="notices" element={<PlaceholderPage title="Notices" description="Announcements pinned to all boarders" />} />
                 <Route path="settings" element={<PlaceholderPage title="Settings" description="Mess settings, members and preferences" />} />
