@@ -25,6 +25,9 @@ import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
 import Call from "./pages/Call";
 import JoinRequests from "./pages/admin/JoinRequests";
+import ExtraBills from "./pages/admin/ExtraBills";
+import MonthlyBills from "./pages/admin/MonthlyBills";
+import Reports from "./pages/admin/Reports";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
@@ -89,6 +92,9 @@ const App = () => (
                 <Route path="deposits" element={<Deposits />} />
                 <Route path="balance" element={<Balance />} />
                 <Route path="stock" element={<Stocks />} />
+                <Route path="extra-bills" element={<ExtraBills />} />
+                <Route path="monthly-bills" element={<MonthlyBills />} />
+                <Route path="reports" element={<Reports />} />
                 <Route path="notices" element={<Notices />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="join-requests" element={<JoinRequests />} />

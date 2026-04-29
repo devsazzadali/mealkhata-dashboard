@@ -229,6 +229,48 @@ export type Database = {
           },
         ]
       }
+      extra_bills: {
+        Row: {
+          amount: number
+          bill_date: string
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          mess_id: string
+          notes: string | null
+          split_method: Database["public"]["Enums"]["bill_split_method"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bill_date?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mess_id: string
+          notes?: string | null
+          split_method?: Database["public"]["Enums"]["bill_split_method"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bill_date?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mess_id?: string
+          notes?: string | null
+          split_method?: Database["public"]["Enums"]["bill_split_method"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       join_requests: {
         Row: {
           created_at: string
@@ -452,6 +494,66 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["mess_status"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      monthly_bills: {
+        Row: {
+          boarder_id: string
+          created_at: string
+          details: Json | null
+          extra_share: number
+          generated_by: string | null
+          id: string
+          meal_cost: number
+          meal_rate: number
+          mess_id: string
+          month: number
+          paid: number
+          payable: number
+          status: Database["public"]["Enums"]["monthly_bill_status"]
+          total_deposit: number
+          total_meals: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          boarder_id: string
+          created_at?: string
+          details?: Json | null
+          extra_share?: number
+          generated_by?: string | null
+          id?: string
+          meal_cost?: number
+          meal_rate?: number
+          mess_id: string
+          month: number
+          paid?: number
+          payable?: number
+          status?: Database["public"]["Enums"]["monthly_bill_status"]
+          total_deposit?: number
+          total_meals?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          boarder_id?: string
+          created_at?: string
+          details?: Json | null
+          extra_share?: number
+          generated_by?: string | null
+          id?: string
+          meal_cost?: number
+          meal_rate?: number
+          mess_id?: string
+          month?: number
+          paid?: number
+          payable?: number
+          status?: Database["public"]["Enums"]["monthly_bill_status"]
+          total_deposit?: number
+          total_meals?: number
+          updated_at?: string
+          year?: number
         }
         Relationships: []
       }
@@ -741,6 +843,10 @@ export type Database = {
         Args: { _mess_id: string; _month: number; _year: number }
         Returns: string
       }
+      generate_monthly_bills: {
+        Args: { _mess_id: string; _month: number; _year: number }
+        Returns: number
+      }
       get_boarder_month_summary: {
         Args: { _mess_id: string; _month: number; _year: number }
         Returns: {
@@ -775,9 +881,11 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "mess_admin" | "boarder"
+      bill_split_method: "equal" | "meal_ratio"
       boarder_status: "active" | "inactive" | "left"
       join_request_status: "pending" | "approved" | "rejected"
       mess_status: "active" | "suspended" | "trial"
+      monthly_bill_status: "unpaid" | "partial" | "paid"
       payment_method: "cash" | "bkash" | "nagad" | "bank"
       stock_txn_type: "in" | "out"
       stock_unit: "kg" | "litre" | "piece" | "gram" | "packet"
@@ -909,9 +1017,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "mess_admin", "boarder"],
+      bill_split_method: ["equal", "meal_ratio"],
       boarder_status: ["active", "inactive", "left"],
       join_request_status: ["pending", "approved", "rejected"],
       mess_status: ["active", "suspended", "trial"],
+      monthly_bill_status: ["unpaid", "partial", "paid"],
       payment_method: ["cash", "bkash", "nagad", "bank"],
       stock_txn_type: ["in", "out"],
       stock_unit: ["kg", "litre", "piece", "gram", "packet"],
