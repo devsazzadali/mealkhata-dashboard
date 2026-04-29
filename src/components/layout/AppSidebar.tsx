@@ -1,22 +1,40 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package, Megaphone, Settings, Calculator } from "lucide-react";
+import {
+  LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package,
+  Megaphone, Settings, Calculator, MessageCircle, UserPlus, User,
+} from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 
-const items = [
+const adminItems = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/app/meals", label: "Meals", icon: UtensilsCrossed },
   { to: "/app/expenses", label: "Expenses", icon: Receipt },
   { to: "/app/deposits", label: "Deposits", icon: Wallet },
   { to: "/app/balance", label: "Balance", icon: Calculator },
   { to: "/app/boarders", label: "Boarders", icon: Users },
+  { to: "/app/join-requests", label: "Join Requests", icon: UserPlus },
   { to: "/app/stock", label: "Stock", icon: Package },
+  { to: "/app/chat", label: "Group Chat", icon: MessageCircle },
   { to: "/app/notices", label: "Notices", icon: Megaphone },
+  { to: "/app/profile", label: "Profile", icon: User },
   { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
-const mobileItems = [items[0], items[1], items[2], items[3], items[4]]; // Dashboard, Meals, Expenses, Deposits, Balance
+const boarderItems = [
+  { to: "/me", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/me/chat", label: "Group Chat", icon: MessageCircle },
+  { to: "/me/profile", label: "Profile", icon: User },
+];
+
+function useNavItems() {
+  const roles = useAuthStore((s) => s.roles);
+  const isAdmin = roles.includes("mess_admin") || roles.includes("super_admin");
+  return isAdmin ? adminItems : boarderItems;
+}
 
 export function AppSidebar() {
+  const items = useNavItems();
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 border-r bg-sidebar text-sidebar-foreground">
       <div className="h-16 flex items-center px-5 border-b">
@@ -51,9 +69,16 @@ export function AppSidebar() {
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();
+  const items = useNavItems();
+  // Pick 5 most useful for mobile
+  const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/profile"];
+  const boarderMobile = ["/me", "/me/chat", "/me/profile"];
+  const mobileSet = new Set(items === adminItems ? adminMobile : boarderMobile);
+  const mobileItems = items.filter((i) => mobileSet.has(i.to));
+
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t">
-      <div className="grid grid-cols-5 h-16">
+      <div className="grid h-16" style={{ gridTemplateColumns: `repeat(${mobileItems.length}, minmax(0, 1fr))` }}>
         {mobileItems.map((it) => {
           const active = it.end ? pathname === it.to : pathname.startsWith(it.to);
           return (
