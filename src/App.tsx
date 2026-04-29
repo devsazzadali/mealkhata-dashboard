@@ -19,6 +19,7 @@ import Deposits from "./pages/admin/Deposits";
 import Balance from "./pages/admin/Balance";
 import MyDashboard from "./pages/boarder/MyDashboard";
 import { PlaceholderPage } from "./components/PlaceholderPage";
+import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -86,7 +87,8 @@ const App = () => (
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<PlaceholderPage title="Super Admin" description="Platform-wide controls and analytics" />} />
+                <Route index element={<SuperMesses />} />
+                <Route path="messes" element={<SuperMesses />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
