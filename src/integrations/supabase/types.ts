@@ -283,6 +283,50 @@ export type Database = {
           },
         ]
       }
+      mess_settings: {
+        Row: {
+          bank_info: string | null
+          bkash_number: string | null
+          created_at: string
+          default_meal_rate: number
+          join_key: string
+          low_balance_threshold: number
+          mess_id: string
+          nagad_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_info?: string | null
+          bkash_number?: string | null
+          created_at?: string
+          default_meal_rate?: number
+          join_key?: string
+          low_balance_threshold?: number
+          mess_id: string
+          nagad_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_info?: string | null
+          bkash_number?: string | null
+          created_at?: string
+          default_meal_rate?: number
+          join_key?: string
+          low_balance_threshold?: number
+          mess_id?: string
+          nagad_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mess_settings_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: true
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messes: {
         Row: {
           address: string | null
