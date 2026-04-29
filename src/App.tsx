@@ -1,26 +1,95 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import AppLayout from "@/components/layout/AppLayout";
 
-const queryClient = new QueryClient();
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
+import RoleRedirect from "./pages/RoleRedirect";
+import MessDashboard from "./pages/admin/MessDashboard";
+import Boarders from "./pages/admin/Boarders";
+import MyDashboard from "./pages/boarder/MyDashboard";
+import { PlaceholderPage } from "./components/PlaceholderPage";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Sonner position="top-right" richColors closeButton />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<RoleRedirect />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <Onboarding />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Mess Admin */}
+              <Route
+                path="/app"
+                element={
+                  <ProtectedRoute allow={["mess_admin", "super_admin"]}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<MessDashboard />} />
+                <Route path="boarders" element={<Boarders />} />
+                <Route path="meals" element={<PlaceholderPage title="Meals" description="Daily meal tracking and per-meal cost calculation" />} />
+                <Route path="expenses" element={<PlaceholderPage title="Expenses" description="Daily expenses with category breakdowns" />} />
+                <Route path="deposits" element={<PlaceholderPage title="Deposits" description="Boarder payments and balance updates" />} />
+                <Route path="stock" element={<PlaceholderPage title="Stock" description="Rice, oil, gas and grocery inventory" />} />
+                <Route path="notices" element={<PlaceholderPage title="Notices" description="Announcements pinned to all boarders" />} />
+                <Route path="settings" element={<PlaceholderPage title="Settings" description="Mess settings, members and preferences" />} />
+              </Route>
+
+              {/* Boarder */}
+              <Route
+                path="/me"
+                element={
+                  <ProtectedRoute allow={["boarder"]}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<MyDashboard />} />
+              </Route>
+
+              {/* Super admin (placeholder for now) */}
+              <Route
+                path="/super"
+                element={
+                  <ProtectedRoute allow={["super_admin"]}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<PlaceholderPage title="Super Admin" description="Platform-wide controls and analytics" />} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
