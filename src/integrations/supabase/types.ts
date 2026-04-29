@@ -313,6 +313,54 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          id: string
+          meal_rate: number
+          mess_id: string
+          month: number
+          status: string
+          total_deposit: number
+          total_expense: number
+          total_meals: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          meal_rate?: number
+          mess_id: string
+          month: number
+          status?: string
+          total_deposit?: number
+          total_expense?: number
+          total_meals?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          meal_rate?: number
+          mess_id?: string
+          month?: number
+          status?: string
+          total_deposit?: number
+          total_expense?: number
+          total_meals?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       notices: {
         Row: {
           content: string
@@ -547,6 +595,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_month: {
+        Args: { _mess_id: string; _month: number; _year: number }
+        Returns: string
+      }
+      get_boarder_month_summary: {
+        Args: { _mess_id: string; _month: number; _year: number }
+        Returns: {
+          boarder_id: string
+          deposits: number
+          full_name: string
+          meals: number
+        }[]
+      }
+      get_month_stats: {
+        Args: { _mess_id: string; _month: number; _year: number }
+        Returns: {
+          meal_rate: number
+          total_deposit: number
+          total_expense: number
+          total_meals: number
+        }[]
+      }
       get_user_mess_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
