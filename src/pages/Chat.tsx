@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Pin, PinOff, Send, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Mic, Phone, Pin, PinOff, Send, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +12,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
+const CALL_PREFIX = "📞 CALL_INVITE:";
+
 export default function Chat() {
   const { user, profile, roles } = useAuthStore();
   const messId = profile?.mess_id ?? null;
   const isAdmin = roles.includes("mess_admin") || roles.includes("super_admin");
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
