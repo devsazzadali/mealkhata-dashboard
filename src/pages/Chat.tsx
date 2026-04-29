@@ -213,6 +213,30 @@ export default function Chat() {
             const mine = m.sender_id === user?.id;
             const sender = data.profMap[m.sender_id];
             const readers = data.readsMap[m.id]?.size ?? 0;
+            const isCallInvite = m.content?.startsWith(CALL_PREFIX);
+
+            if (isCallInvite) {
+              const [kind, roomId] = m.content!.slice(CALL_PREFIX.length).split(":");
+              const audioOnly = kind === "audio";
+              const target = `${isAdmin ? "/app" : "/me"}/call/${roomId}${audioOnly ? "?audio=1" : ""}`;
+              return (
+                <div key={m.id} className="flex justify-center">
+                  <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 max-w-md w-full text-center">
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2">
+                      {audioOnly ? <Mic className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                    </div>
+                    <p className="text-sm font-semibold">
+                      {sender?.full_name ?? "Someone"} started a {audioOnly ? "audio" : "video"} call
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{format(new Date(m.created_at), "HH:mm")}</p>
+                    <Button size="sm" className="mt-3 gap-1.5" onClick={() => navigate(target)}>
+                      <Phone className="w-3.5 h-3.5" /> Join Call
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={m.id} className={cn("flex gap-2 group", mine && "flex-row-reverse")}>
                 <Avatar className="w-8 h-8 shrink-0">
