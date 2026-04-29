@@ -32,12 +32,16 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Reject if caller already has any role
+    // Reject if caller already has a mess_admin or boarder role.
+    // Super admins are allowed to create messes for themselves too.
     const { data: existingRoles } = await admin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    if (existingRoles && existingRoles.length > 0) {
+    const blocking = (existingRoles ?? []).filter(
+      (r: any) => r.role === "mess_admin" || r.role === "boarder"
+    );
+    if (blocking.length > 0) {
       return json({ error: "You already have a role assigned" }, 400);
     }
 
