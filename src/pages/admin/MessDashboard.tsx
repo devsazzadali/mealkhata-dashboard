@@ -15,15 +15,15 @@ export default function MessDashboard() {
     enabled: !!messId,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      const monthStart = startOfMonth.toISOString().slice(0, 10);
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const startOfMonth = new Date(year, month - 1, 1).toISOString().slice(0, 10);
 
-      const [boarders, expensesMonth, expensesToday, deposits] = await Promise.all([
+      const [boarders, expensesToday, statsRes] = await Promise.all([
         supabase.from("boarders").select("id, balance, status").eq("mess_id", messId!),
-        supabase.from("expenses").select("amount").eq("mess_id", messId!).gte("expense_date", monthStart),
         supabase.from("expenses").select("amount").eq("mess_id", messId!).eq("expense_date", today),
-        supabase.from("deposits").select("amount").eq("mess_id", messId!).gte("deposit_date", monthStart),
+        supabase.rpc("get_month_stats", { _mess_id: messId!, _year: year, _month: month }),
       ]);
 
       const active = (boarders.data ?? []).filter((b) => b.status === "active");
@@ -32,18 +32,19 @@ export default function MessDashboard() {
         (s, b) => s + (Number(b.balance) < 0 ? -Number(b.balance) : 0),
         0
       );
-      const monthExpense = (expensesMonth.data ?? []).reduce((s, e) => s + Number(e.amount), 0);
       const todayExpense = (expensesToday.data ?? []).reduce((s, e) => s + Number(e.amount), 0);
-      const monthDeposit = (deposits.data ?? []).reduce((s, d) => s + Number(d.amount), 0);
+      const stats = statsRes.data?.[0] ?? { total_meals: 0, total_expense: 0, total_deposit: 0, meal_rate: 0 };
 
       return {
         totalBoarders: active.length,
         allBoarders: (boarders.data ?? []).length,
         totalBalance,
         totalDue,
-        monthExpense,
+        monthExpense: Number(stats.total_expense),
         todayExpense,
-        monthDeposit,
+        monthDeposit: Number(stats.total_deposit),
+        totalMeals: Number(stats.total_meals),
+        mealRate: Number(stats.meal_rate),
       };
     },
   });
@@ -73,16 +74,8 @@ export default function MessDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatCard label="Today Expense" value={formatBdt(data?.todayExpense ?? 0)} icon={Receipt} />
             <StatCard label="Monthly Deposit" value={formatBdt(data?.monthDeposit ?? 0)} icon={TrendingUp} tone="success" />
-            <StatCard label="Per Meal Cost" value="—" hint="Add meals to calculate" icon={UtensilsCrossed} />
-            <StatCard label="Rice Stock" value="—" hint="Phase 2" icon={UtensilsCrossed} />
-          </div>
-
-          <div className="rounded-2xl border bg-card p-6">
-            <h3 className="font-semibold mb-1">More coming soon</h3>
-            <p className="text-sm text-muted-foreground">
-              Meals, expenses, deposits, stock and notices are wired into the database. We'll bring full editing
-              flows in the next phase. Start by adding your boarders.
-            </p>
+            <StatCard label="Total Meals (month)" value={String(data?.totalMeals ?? 0)} icon={UtensilsCrossed} />
+            <StatCard label="Per Meal Cost" value={formatBdt(data?.mealRate ?? 0)} hint="live" icon={UtensilsCrossed} tone="primary" />
           </div>
         </>
       )}
