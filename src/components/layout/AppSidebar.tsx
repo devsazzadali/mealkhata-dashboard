@@ -1,19 +1,20 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package, Megaphone, Settings } from "lucide-react";
+import { LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package, Megaphone, Settings, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/app/boarders", label: "Boarders", icon: Users },
   { to: "/app/meals", label: "Meals", icon: UtensilsCrossed },
   { to: "/app/expenses", label: "Expenses", icon: Receipt },
   { to: "/app/deposits", label: "Deposits", icon: Wallet },
+  { to: "/app/balance", label: "Balance", icon: Calculator },
+  { to: "/app/boarders", label: "Boarders", icon: Users },
   { to: "/app/stock", label: "Stock", icon: Package },
   { to: "/app/notices", label: "Notices", icon: Megaphone },
   { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
-const mobileItems = items.slice(0, 5); // 5 max for bottom nav
+const mobileItems = [items[0], items[1], items[2], items[3], items[4]]; // Dashboard, Meals, Expenses, Deposits, Balance
 
 export function AppSidebar() {
   return (
