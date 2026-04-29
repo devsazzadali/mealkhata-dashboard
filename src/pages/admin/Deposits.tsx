@@ -25,7 +25,7 @@ import { currentPeriod, periodRange } from "@/lib/period";
 const schema = z.object({
   boarder_id: z.string().min(1, "Boarder required"),
   amount: z.coerce.number().positive("Amount required"),
-  method: z.enum(["cash", "bkash", "nagad", "rocket", "bank", "other"]),
+  method: z.enum(["cash", "bkash", "nagad", "bank"]),
   deposit_date: z.string().min(1),
   reference: z.string().optional(),
   notes: z.string().optional(),
@@ -36,9 +36,7 @@ const methodColors: Record<string, string> = {
   cash: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   bkash: "bg-pink-500/10 text-pink-700 dark:text-pink-400",
   nagad: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  rocket: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
   bank: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  other: "bg-muted text-muted-foreground",
 };
 
 export default function Deposits() {
@@ -169,7 +167,7 @@ export default function Deposits() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
-                        {["cash","bkash","nagad","rocket","bank","other"].map((m) => (
+                        {(["cash","bkash","nagad","bank"] as const).map((m) => (
                           <SelectItem key={m} value={m}>{m.toUpperCase()}</SelectItem>
                         ))}
                       </SelectContent>
