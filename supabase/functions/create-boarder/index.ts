@@ -51,16 +51,29 @@ Deno.serve(async (req) => {
     if (userErr || !userRes.user) return json({ error: "Unauthorized" }, 401);
     const callerId = userRes.user.id;
 
-    // Verify caller is a mess_admin and get their mess_id
-    const { data: roleRow } = await userClient
+    // Verify caller is a mess_admin or super_admin and resolve a mess_id.
+    // A user can have multiple roles, so don't use .maybeSingle() here.
+    const { data: roleRows } = await userClient
       .from("user_roles")
       .select("mess_id, role")
       .eq("user_id", callerId)
-      .in("role", ["mess_admin", "super_admin"])
-      .maybeSingle();
+      .in("role", ["mess_admin", "super_admin"]);
 
-    if (!roleRow) return json({ error: "Only admins can create boarders" }, 403);
-    const messId = roleRow.mess_id;
+    if (!roleRows || roleRows.length === 0) {
+      return json({ error: "Only admins can create boarders" }, 403);
+    }
+
+    // Prefer a mess_admin row (it has the mess_id); fall back to caller's profile mess_id
+    let messId: string | null =
+      roleRows.find((r: any) => r.role === "mess_admin" && r.mess_id)?.mess_id ?? null;
+    if (!messId) {
+      const { data: profile } = await userClient
+        .from("profiles")
+        .select("mess_id")
+        .eq("id", callerId)
+        .maybeSingle();
+      messId = profile?.mess_id ?? null;
+    }
     if (!messId) return json({ error: "Admin has no mess assigned" }, 400);
 
     const body = (await req.json()) as CreateBoarderBody;
