@@ -23,6 +23,7 @@ import Settings from "./pages/admin/Settings";
 import MyDashboard from "./pages/boarder/MyDashboard";
 import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
+import Call from "./pages/Call";
 import JoinRequests from "./pages/admin/JoinRequests";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import SuperMesses from "./pages/super/SuperMesses";
@@ -48,6 +49,24 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Onboarding />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Fullscreen call (outside AppLayout) */}
+              <Route
+                path="/app/call/:roomId"
+                element={
+                  <ProtectedRoute allow={["mess_admin", "super_admin"]}>
+                    <Call />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/me/call/:roomId"
+                element={
+                  <ProtectedRoute allow={["boarder"]}>
+                    <Call />
                   </ProtectedRoute>
                 }
               />

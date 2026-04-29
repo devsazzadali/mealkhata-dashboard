@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Pin, PinOff, Send, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Mic, Phone, Pin, PinOff, Send, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +12,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
+const CALL_PREFIX = "📞 CALL_INVITE:";
+
 export default function Chat() {
   const { user, profile, roles } = useAuthStore();
   const messId = profile?.mess_id ?? null;
   const isAdmin = roles.includes("mess_admin") || roles.includes("super_admin");
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -151,11 +155,36 @@ export default function Chat() {
     );
   }
 
+  const startCall = async (kind: "video" | "audio") => {
+    if (!messId || !user) return;
+    const roomId = `mealkhata-${messId}-${Date.now().toString(36)}`;
+    const callPath = `${window.location.origin}/call/${roomId}${kind === "audio" ? "?audio=1" : ""}`;
+    // broadcast invite as a chat message
+    await supabase.from("messages").insert({
+      mess_id: messId,
+      sender_id: user.id,
+      content: `${CALL_PREFIX}${kind}:${roomId}`,
+    });
+    // open call
+    const target = isAdmin ? `/app/call/${roomId}` : `/me/call/${roomId}`;
+    navigate(`${target}${kind === "audio" ? "?audio=1" : ""}`);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-9rem)] md:h-[calc(100vh-7rem)] -mt-2">
-      <div className="border-b pb-3 mb-3">
-        <h1 className="text-xl font-bold">Mess Group Chat</h1>
-        <p className="text-xs text-muted-foreground">Realtime · {data?.msgs.length ?? 0} messages</p>
+      <div className="border-b pb-3 mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">Mess Group Chat</h1>
+          <p className="text-xs text-muted-foreground">Realtime · {data?.msgs.length ?? 0} messages</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => startCall("audio")} className="gap-1.5">
+            <Mic className="w-4 h-4" /> Audio
+          </Button>
+          <Button size="sm" onClick={() => startCall("video")} className="gap-1.5">
+            <Video className="w-4 h-4" /> Video Call
+          </Button>
+        </div>
       </div>
 
       {pinned.length > 0 && (
@@ -184,6 +213,30 @@ export default function Chat() {
             const mine = m.sender_id === user?.id;
             const sender = data.profMap[m.sender_id];
             const readers = data.readsMap[m.id]?.size ?? 0;
+            const isCallInvite = m.content?.startsWith(CALL_PREFIX);
+
+            if (isCallInvite) {
+              const [kind, roomId] = m.content!.slice(CALL_PREFIX.length).split(":");
+              const audioOnly = kind === "audio";
+              const target = `${isAdmin ? "/app" : "/me"}/call/${roomId}${audioOnly ? "?audio=1" : ""}`;
+              return (
+                <div key={m.id} className="flex justify-center">
+                  <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 max-w-md w-full text-center">
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2">
+                      {audioOnly ? <Mic className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                    </div>
+                    <p className="text-sm font-semibold">
+                      {sender?.full_name ?? "Someone"} started a {audioOnly ? "audio" : "video"} call
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{format(new Date(m.created_at), "HH:mm")}</p>
+                    <Button size="sm" className="mt-3 gap-1.5" onClick={() => navigate(target)}>
+                      <Phone className="w-3.5 h-3.5" /> Join Call
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={m.id} className={cn("flex gap-2 group", mine && "flex-row-reverse")}>
                 <Avatar className="w-8 h-8 shrink-0">
