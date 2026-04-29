@@ -53,6 +53,24 @@ const App = () => (
                 }
               />
 
+              {/* Fullscreen call (outside AppLayout) */}
+              <Route
+                path="/app/call/:roomId"
+                element={
+                  <ProtectedRoute allow={["mess_admin", "super_admin"]}>
+                    <Call />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/me/call/:roomId"
+                element={
+                  <ProtectedRoute allow={["boarder"]}>
+                    <Call />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Mess Admin */}
               <Route
                 path="/app"
