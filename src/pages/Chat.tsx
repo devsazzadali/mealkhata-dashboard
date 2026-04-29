@@ -155,11 +155,36 @@ export default function Chat() {
     );
   }
 
+  const startCall = async (kind: "video" | "audio") => {
+    if (!messId || !user) return;
+    const roomId = `mealkhata-${messId}-${Date.now().toString(36)}`;
+    const callPath = `${window.location.origin}/call/${roomId}${kind === "audio" ? "?audio=1" : ""}`;
+    // broadcast invite as a chat message
+    await supabase.from("messages").insert({
+      mess_id: messId,
+      sender_id: user.id,
+      content: `${CALL_PREFIX}${kind}:${roomId}`,
+    });
+    // open call
+    const target = isAdmin ? `/app/call/${roomId}` : `/me/call/${roomId}`;
+    navigate(`${target}${kind === "audio" ? "?audio=1" : ""}`);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-9rem)] md:h-[calc(100vh-7rem)] -mt-2">
-      <div className="border-b pb-3 mb-3">
-        <h1 className="text-xl font-bold">Mess Group Chat</h1>
-        <p className="text-xs text-muted-foreground">Realtime · {data?.msgs.length ?? 0} messages</p>
+      <div className="border-b pb-3 mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">Mess Group Chat</h1>
+          <p className="text-xs text-muted-foreground">Realtime · {data?.msgs.length ?? 0} messages</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => startCall("audio")} className="gap-1.5">
+            <Mic className="w-4 h-4" /> Audio
+          </Button>
+          <Button size="sm" onClick={() => startCall("video")} className="gap-1.5">
+            <Video className="w-4 h-4" /> Video Call
+          </Button>
+        </div>
       </div>
 
       {pinned.length > 0 && (
