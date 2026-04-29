@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package,
   Megaphone, Settings, Calculator, MessageCircle, UserPlus, User,
+  Zap, FileText, BarChart3,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
@@ -10,8 +11,11 @@ const adminItems = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/app/meals", label: "Meals", icon: UtensilsCrossed },
   { to: "/app/expenses", label: "Expenses", icon: Receipt },
+  { to: "/app/extra-bills", label: "Extra Bills", icon: Zap },
   { to: "/app/deposits", label: "Deposits", icon: Wallet },
   { to: "/app/balance", label: "Balance", icon: Calculator },
+  { to: "/app/monthly-bills", label: "Monthly Bills", icon: FileText },
+  { to: "/app/reports", label: "Reports", icon: BarChart3 },
   { to: "/app/boarders", label: "Boarders", icon: Users },
   { to: "/app/join-requests", label: "Join Requests", icon: UserPlus },
   { to: "/app/stock", label: "Stock", icon: Package },
