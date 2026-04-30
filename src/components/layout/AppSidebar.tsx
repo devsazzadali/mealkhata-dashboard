@@ -2,33 +2,43 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package,
   Megaphone, Settings, Calculator, MessageCircle, UserPlus, User,
-  Zap, FileText, BarChart3,
+  Zap, FileText, BarChart3, Image as ImageIcon, CalendarClock,
+  MessageSquareHeart, CalendarDays, ShoppingCart,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 
 const adminItems = [
-  { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/app/meals", label: "Meals", icon: UtensilsCrossed },
-  { to: "/app/expenses", label: "Expenses", icon: Receipt },
-  { to: "/app/extra-bills", label: "Extra Bills", icon: Zap },
-  { to: "/app/deposits", label: "Deposits", icon: Wallet },
-  { to: "/app/balance", label: "Balance", icon: Calculator },
-  { to: "/app/monthly-bills", label: "Monthly Bills", icon: FileText },
-  { to: "/app/reports", label: "Reports", icon: BarChart3 },
-  { to: "/app/boarders", label: "Boarders", icon: Users },
-  { to: "/app/join-requests", label: "Join Requests", icon: UserPlus },
-  { to: "/app/stock", label: "Stock", icon: Package },
-  { to: "/app/chat", label: "Group Chat", icon: MessageCircle },
-  { to: "/app/notices", label: "Notices", icon: Megaphone },
-  { to: "/app/profile", label: "Profile", icon: User },
-  { to: "/app/settings", label: "Settings", icon: Settings },
+  { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+  { to: "/app/boarders", label: "সদস্যবৃন্দ", icon: Users },
+  { to: "/app/meals", label: "আজকের মেনু", icon: UtensilsCrossed },
+  { to: "/app/balance", label: "মিল ব্যবস্থাপনা", icon: Calculator },
+  { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
+  { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
+  { to: "/app/expenses", label: "বাজার ও খরচ", icon: ShoppingCart },
+  { to: "/app/extra-bills", label: "এক্সট্রা বিল", icon: Zap },
+  { to: "/app/deposits", label: "ডিপোজিট", icon: Wallet },
+  { to: "/app/monthly-bills", label: "বিল ও পেমেন্ট", icon: Receipt },
+  { to: "/app/notices", label: "নোটিশ বোর্ড", icon: Megaphone },
+  { to: "/app/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
+  { to: "/app/reports", label: "রিপোর্ট", icon: BarChart3 },
+  { to: "/app/events", label: "ইভেন্ট", icon: CalendarDays },
+  { to: "/app/ads", label: "বিজ্ঞাপন দিন", icon: Megaphone },
+  { to: "/app/stock", label: "স্টক", icon: Package },
+  { to: "/app/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
+  { to: "/app/join-requests", label: "জয়েন রিকোয়েস্ট", icon: UserPlus },
+  { to: "/app/profile", label: "প্রোফাইল", icon: User },
+  { to: "/app/settings", label: "সেটিংস", icon: Settings },
 ];
 
 const boarderItems = [
-  { to: "/me", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/me/chat", label: "Group Chat", icon: MessageCircle },
-  { to: "/me/profile", label: "Profile", icon: User },
+  { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+  { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
+  { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
+  { to: "/me/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
+  { to: "/me/ads", label: "বিজ্ঞাপন", icon: Megaphone },
+  { to: "/me/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
+  { to: "/me/profile", label: "প্রোফাইল", icon: User },
 ];
 
 function useNavItems() {
