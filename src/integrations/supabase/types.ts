@@ -615,6 +615,60 @@ export type Database = {
           },
         ]
       }
+      meal_requests: {
+        Row: {
+          boarder_id: string
+          breakfast: boolean
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          dinner: boolean
+          guest: number
+          id: string
+          lunch: boolean
+          mess_id: string
+          note: string | null
+          request_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          boarder_id: string
+          breakfast?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dinner?: boolean
+          guest?: number
+          id?: string
+          lunch?: boolean
+          mess_id: string
+          note?: string | null
+          request_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          boarder_id?: string
+          breakfast?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dinner?: boolean
+          guest?: number
+          id?: string
+          lunch?: boolean
+          mess_id?: string
+          note?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mess_settings: {
         Row: {
           bank_info: string | null
