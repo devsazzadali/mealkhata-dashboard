@@ -565,6 +565,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           dinner: number
+          guest: number
           id: string
           lunch: number
           meal_date: string
@@ -577,6 +578,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dinner?: number
+          guest?: number
           id?: string
           lunch?: number
           meal_date?: string
@@ -589,6 +591,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dinner?: number
+          guest?: number
           id?: string
           lunch?: number
           meal_date?: string

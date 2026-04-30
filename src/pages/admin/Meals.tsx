@@ -1,12 +1,21 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Save, UtensilsCrossed } from "lucide-react";
+import {
+  Coffee, Sun, Moon, Users, X, Plus, Minus, CalendarDays, UtensilsCrossed,
+} from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 type Row = {
   boarder_id: string;
@@ -14,18 +23,19 @@ type Row = {
   breakfast: number;
   lunch: number;
   dinner: number;
+  guest: number;
   entry_id?: string;
 };
 
-function fmt(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
 export default function Meals() {
   const messId = useAuthStore((s) => s.profile?.mess_id);
   const qc = useQueryClient();
+
   const [date, setDate] = useState(fmt(new Date()));
   const [draft, setDraft] = useState<Record<string, Row>>({});
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -41,68 +51,88 @@ export default function Meals() {
           .order("full_name"),
         supabase
           .from("meal_entries")
-          .select("id, boarder_id, breakfast, lunch, dinner")
+          .select("id, boarder_id, breakfast, lunch, dinner, guest")
           .eq("mess_id", messId!)
           .eq("meal_date", date),
       ]);
       if (boardersRes.error) throw boardersRes.error;
       if (entriesRes.error) throw entriesRes.error;
 
-      const byBoarder = new Map(entriesRes.data?.map((e) => [e.boarder_id, e]));
+      const byBoarder = new Map(entriesRes.data?.map((e: any) => [e.boarder_id, e]));
       const rows: Record<string, Row> = {};
       for (const b of boardersRes.data ?? []) {
-        const e = byBoarder.get(b.id);
+        const e: any = byBoarder.get(b.id);
         rows[b.id] = {
           boarder_id: b.id,
           full_name: b.full_name,
           breakfast: Number(e?.breakfast ?? 0),
           lunch: Number(e?.lunch ?? 0),
           dinner: Number(e?.dinner ?? 0),
+          guest: Number(e?.guest ?? 0),
           entry_id: e?.id,
         };
       }
-      setDraft(rows);
       return rows;
     },
   });
 
+  useEffect(() => {
+    if (data) setDraft(data);
+  }, [data]);
+
   const totals = useMemo(() => {
     const list = Object.values(draft);
-    const t = list.reduce(
+    return list.reduce(
+      (a, r) => ({
+        b: a.b + (r.breakfast > 0 ? 1 : 0),
+        l: a.l + (r.lunch > 0 ? 1 : 0),
+        d: a.d + (r.dinner > 0 ? 1 : 0),
+        g: a.g + r.guest,
+        absent: a.absent + (r.breakfast === 0 && r.lunch === 0 && r.dinner === 0 ? 1 : 0),
+      }),
+      { b: 0, l: 0, d: 0, g: 0, absent: 0 }
+    );
+  }, [draft]);
+
+  const dialogTotals = useMemo(() => {
+    const list = Object.values(draft);
+    return list.reduce(
       (a, r) => ({
         b: a.b + r.breakfast,
         l: a.l + r.lunch,
         d: a.d + r.dinner,
+        g: a.g + r.guest,
       }),
-      { b: 0, l: 0, d: 0 }
+      { b: 0, l: 0, d: 0, g: 0 }
     );
-    return { ...t, all: t.b + t.l + t.d, count: list.length };
   }, [draft]);
 
-  const setVal = (id: string, key: "breakfast" | "lunch" | "dinner", v: number) => {
-    setDraft((d) => ({ ...d, [id]: { ...d[id], [key]: Math.max(0, v) } }));
+  const toggleMeal = (id: string, key: "breakfast" | "lunch" | "dinner") => {
+    setDraft((d) => ({
+      ...d,
+      [id]: { ...d[id], [key]: d[id][key] > 0 ? 0 : 1 },
+    }));
   };
 
-  const shiftDate = (delta: number) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + delta);
-    setDate(fmt(d));
+  const setGuest = (id: string, v: number) => {
+    setDraft((d) => ({ ...d, [id]: { ...d[id], guest: Math.max(0, v) } }));
   };
+
+  const setAll = (key: "breakfast" | "lunch" | "dinner", v: 0 | 1) => {
+    setDraft((d) => {
+      const next: Record<string, Row> = {};
+      for (const id of Object.keys(d)) next[id] = { ...d[id], [key]: v };
+      return next;
+    });
+  };
+
+  const allOn = (key: "breakfast" | "lunch" | "dinner") =>
+    Object.values(draft).length > 0 && Object.values(draft).every((r) => r[key] > 0);
 
   const saveAll = async () => {
     if (!messId) return;
     setSaving(true);
     const rows = Object.values(draft);
-    const payload = rows.map((r) => ({
-      mess_id: messId,
-      boarder_id: r.boarder_id,
-      meal_date: date,
-      breakfast: r.breakfast,
-      lunch: r.lunch,
-      dinner: r.dinner,
-    }));
-    // Upsert by (mess_id, boarder_id, meal_date) — need composite uniqueness handled by deletion+insert fallback
-    // Simpler: delete then insert for this date+mess
     const del = await supabase
       .from("meal_entries")
       .delete()
@@ -113,7 +143,17 @@ export default function Meals() {
       setSaving(false);
       return;
     }
-    const nonZero = payload.filter((p) => p.breakfast || p.lunch || p.dinner);
+    const nonZero = rows
+      .filter((r) => r.breakfast || r.lunch || r.dinner || r.guest)
+      .map((r) => ({
+        mess_id: messId,
+        boarder_id: r.boarder_id,
+        meal_date: date,
+        breakfast: r.breakfast,
+        lunch: r.lunch,
+        dinner: r.dinner,
+        guest: r.guest,
+      }));
     if (nonZero.length > 0) {
       const ins = await supabase.from("meal_entries").insert(nonZero);
       if (ins.error) {
@@ -122,161 +162,273 @@ export default function Meals() {
         return;
       }
     }
-    toast.success("Meals saved");
+    toast.success("মিল এন্ট্রি সংরক্ষণ হয়েছে");
     qc.invalidateQueries({ queryKey: ["meals", messId, date] });
     qc.invalidateQueries({ queryKey: ["mess-dashboard", messId] });
     qc.invalidateQueries({ queryKey: ["month-stats"] });
     setSaving(false);
+    setDialogOpen(false);
   };
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Daily Meals</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Tap a count to edit. Save when done.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">মিল ব্যবস্থাপনা</h1>
+          <p className="text-sm text-muted-foreground mt-1">দৈনিক মিল এন্ট্রি ও ট্র্যাকিং সিস্টেম</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => shiftDate(-1)}>
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> মিল এন্ট্রি করুন
+        </Button>
+      </div>
+
+      {/* Status tiles */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <StatTile color="primary" icon={<Coffee className="w-5 h-5" />} label="সকালের নাশতা" value={totals.b} />
+        <StatTile color="primary" icon={<Sun className="w-5 h-5" />} label="দুপুরের খাবার" value={totals.l} />
+        <StatTile color="primary" icon={<Moon className="w-5 h-5" />} label="রাতের খাবার" value={totals.d} />
+        <StatTile color="primary" icon={<Users className="w-5 h-5" />} label="অতিথি মিল" value={totals.g} />
+        <StatTile color="destructive" icon={<X className="w-5 h-5" />} label="অনুপস্থিত" value={totals.absent} />
+      </div>
+
+      {/* Today list summary */}
+      <div className="rounded-2xl border bg-card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b">
+          <div>
+            <h2 className="font-semibold flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-primary" /> আজকের মিল স্ট্যাটাস
+            </h2>
+            <p className="text-xs text-muted-foreground">{date} - সদস্যদের মিলের বিস্তারিত</p>
+          </div>
           <Input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="w-[160px]"
           />
-          <Button variant="outline" size="icon" onClick={() => shiftDate(1)}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile label="Breakfast" value={totals.b} />
-        <StatTile label="Lunch" value={totals.l} />
-        <StatTile label="Dinner" value={totals.d} />
-        <StatTile label="Total Meals" value={totals.all} highlight />
-      </div>
-
-      {isLoading ? (
-        <Skeleton className="h-80 rounded-2xl" />
-      ) : !data || Object.keys(data).length === 0 ? (
-        <EmptyBoarders />
-      ) : (
-        <div className="rounded-2xl border bg-card overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr,90px,90px,90px,90px] gap-2 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b bg-muted/30">
-            <div>Boarder</div>
-            <div className="text-center">Breakfast</div>
-            <div className="text-center">Lunch</div>
-            <div className="text-center">Dinner</div>
-            <div className="text-center">Total</div>
-          </div>
-          <div className="divide-y">
-            {Object.values(draft).map((r) => {
-              const total = r.breakfast + r.lunch + r.dinner;
-              return (
-                <div
-                  key={r.boarder_id}
-                  className="grid grid-cols-[1fr,60px,60px,60px] md:grid-cols-[1fr,90px,90px,90px,90px] gap-2 px-3 md:px-4 py-3 items-center"
-                >
-                  <div className="font-medium text-sm truncate">{r.full_name}</div>
-                  <MealStepper
-                    label="B"
-                    value={r.breakfast}
-                    onChange={(v) => setVal(r.boarder_id, "breakfast", v)}
-                  />
-                  <MealStepper
-                    label="L"
-                    value={r.lunch}
-                    onChange={(v) => setVal(r.boarder_id, "lunch", v)}
-                  />
-                  <MealStepper
-                    label="D"
-                    value={r.dinner}
-                    onChange={(v) => setVal(r.boarder_id, "dinner", v)}
-                  />
-                  <div className="hidden md:block text-center text-sm font-semibold tabular-nums">
-                    {total}
+        {isLoading ? (
+          <Skeleton className="h-40 m-4" />
+        ) : Object.keys(draft).length === 0 ? (
+          <EmptyBoarders />
+        ) : (
+          <>
+            <div className="hidden md:grid grid-cols-[1.5fr,80px,80px,80px,80px,1fr] gap-2 px-4 py-3 text-xs font-semibold text-muted-foreground border-b bg-muted/30">
+              <div>সদস্য</div>
+              <div className="text-center">নাশতা</div>
+              <div className="text-center">দুপুর</div>
+              <div className="text-center">রাত</div>
+              <div className="text-center">অতিথি</div>
+              <div className="text-center">স্ট্যাটাস</div>
+            </div>
+            <div className="divide-y">
+              {Object.values(draft).map((r) => {
+                const absent = !r.breakfast && !r.lunch && !r.dinner;
+                return (
+                  <div
+                    key={r.boarder_id}
+                    className="grid grid-cols-[1.5fr,1fr] md:grid-cols-[1.5fr,80px,80px,80px,80px,1fr] gap-2 px-4 py-3 items-center text-sm"
+                  >
+                    <div className="font-medium truncate">{r.full_name}</div>
+                    <Cell value={r.breakfast > 0} />
+                    <Cell value={r.lunch > 0} />
+                    <Cell value={r.dinner > 0} />
+                    <div className="hidden md:block text-center tabular-nums">{r.guest}</div>
+                    <div className="text-center text-xs">
+                      {absent ? (
+                        <span className="text-destructive font-medium">অনুপস্থিত</span>
+                      ) : (
+                        <span className="text-primary font-medium">উপস্থিত</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="sticky bottom-20 md:bottom-4 flex justify-end">
-        <Button size="lg" onClick={saveAll} disabled={saving} className="shadow-glow">
-          <Save className="w-4 h-4 mr-2" /> {saving ? "Saving…" : "Save Meals"}
-        </Button>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Entry Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-primary" /> দৈনিক মিল এন্ট্রি
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">{date} তারিখের মিল এন্ট্রি করুন</p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>তারিখ নির্বাচন করুন</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+
+            {/* Quick totals */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <MiniTile color="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200" icon={<Coffee className="w-4 h-4" />} label="নাশতা" value={dialogTotals.b} />
+              <MiniTile color="bg-sky-100 text-sky-800 dark:bg-sky-950/40 dark:text-sky-200" icon={<Sun className="w-4 h-4" />} label="দুপুরের খাবার" value={dialogTotals.l} />
+              <MiniTile color="bg-violet-100 text-violet-800 dark:bg-violet-950/40 dark:text-violet-200" icon={<Moon className="w-4 h-4" />} label="রাতের খাবার" value={dialogTotals.d} />
+              <MiniTile color="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200" icon={<Users className="w-4 h-4" />} label="গেস্ট" value={dialogTotals.g} />
+            </div>
+
+            <div className="space-y-2">
+              <p className="font-semibold text-sm">সদস্যদের মিল এন্ট্রি</p>
+              <div className="flex flex-wrap gap-2">
+                <BulkBtn active={allOn("breakfast")} onClick={() => setAll("breakfast", allOn("breakfast") ? 0 : 1)} icon={<Coffee className="w-3.5 h-3.5" />}>
+                  সবার নাশতা
+                </BulkBtn>
+                <BulkBtn active={allOn("lunch")} onClick={() => setAll("lunch", allOn("lunch") ? 0 : 1)} icon={<Sun className="w-3.5 h-3.5" />}>
+                  সবার দুপুর
+                </BulkBtn>
+                <BulkBtn active={allOn("dinner")} onClick={() => setAll("dinner", allOn("dinner") ? 0 : 1)} icon={<Moon className="w-3.5 h-3.5" />}>
+                  সবার রাত
+                </BulkBtn>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <Skeleton className="h-32" />
+            ) : Object.keys(draft).length === 0 ? (
+              <EmptyBoarders />
+            ) : (
+              <div className="divide-y border rounded-xl">
+                {Object.values(draft).map((r) => (
+                  <div
+                    key={r.boarder_id}
+                    className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-semibold shrink-0">
+                        {r.full_name.charAt(0)}
+                      </div>
+                      <span className="text-sm font-medium truncate">{r.full_name}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <ToggleIcon active={r.breakfast > 0} onClick={() => toggleMeal(r.boarder_id, "breakfast")} colorClass="bg-amber-400 text-amber-950" title="নাশতা">
+                        <Coffee className="w-4 h-4" />
+                      </ToggleIcon>
+                      <ToggleIcon active={r.lunch > 0} onClick={() => toggleMeal(r.boarder_id, "lunch")} colorClass="bg-sky-400 text-sky-950" title="দুপুর">
+                        <Sun className="w-4 h-4" />
+                      </ToggleIcon>
+                      <ToggleIcon active={r.dinner > 0} onClick={() => toggleMeal(r.boarder_id, "dinner")} colorClass="bg-violet-400 text-violet-950" title="রাত">
+                        <Moon className="w-4 h-4" />
+                      </ToggleIcon>
+                      <div className="flex items-center gap-1 ml-2 border rounded-lg pl-2">
+                        <span className="text-xs text-muted-foreground">গেস্ট:</span>
+                        <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setGuest(r.boarder_id, r.guest - 1)}>
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="w-5 text-center text-sm tabular-nums">{r.guest}</span>
+                        <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setGuest(r.boarder_id, r.guest + 1)}>
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>বাতিল</Button>
+            <Button onClick={saveAll} disabled={saving}>
+              {saving ? "সংরক্ষণ হচ্ছে..." : "মিল এন্ট্রি সংরক্ষণ"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function MealStepper({
-  label,
-  value,
-  onChange,
+function ToggleIcon({
+  active, onClick, children, colorClass, title,
 }: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
+  active: boolean; onClick: () => void; children: React.ReactNode; colorClass: string; title: string;
 }) {
   return (
-    <div className="flex items-center gap-1">
-      <Button
-        type="button"
-        size="icon"
-        variant="outline"
-        className="h-8 w-8 shrink-0"
-        onClick={() => onChange(value - 0.5)}
-      >
-        −
-      </Button>
-      <Input
-        inputMode="decimal"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-        className="h-8 text-center px-1 tabular-nums"
-        aria-label={label}
-      />
-      <Button
-        type="button"
-        size="icon"
-        variant="outline"
-        className="h-8 w-8 shrink-0"
-        onClick={() => onChange(value + 0.5)}
-      >
-        +
-      </Button>
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "h-8 w-8 rounded-lg flex items-center justify-center transition-all border",
+        active ? `${colorClass} border-transparent shadow-sm` : "bg-muted/30 text-muted-foreground border-border hover:bg-muted"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BulkBtn({
+  active, onClick, icon, children,
+}: {
+  active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all",
+        active
+          ? "bg-primary text-primary-foreground border-transparent"
+          : "bg-card text-foreground border-border hover:bg-muted"
+      )}
+    >
+      {icon} {children}
+    </button>
+  );
+}
+
+function Cell({ value }: { value: boolean }) {
+  return (
+    <div className="text-center">
+      <span className={cn("inline-flex w-6 h-6 rounded-full items-center justify-center text-xs",
+        value ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+      )}>
+        {value ? "✓" : "—"}
+      </span>
     </div>
   );
 }
 
-function StatTile({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function StatTile({
+  label, value, icon, color,
+}: {
+  label: string; value: number; icon: React.ReactNode; color: "primary" | "destructive";
+}) {
   return (
-    <div
-      className={
-        "rounded-2xl p-4 border " +
-        (highlight ? "bg-primary text-primary-foreground border-transparent shadow-glow" : "bg-card")
-      }
-    >
-      <p className="text-xs uppercase tracking-wide opacity-80">{label}</p>
+    <div className={cn(
+      "rounded-2xl p-4 border shadow-sm",
+      color === "primary" ? "bg-primary text-primary-foreground border-transparent" : "bg-destructive text-destructive-foreground border-transparent"
+    )}>
+      <div className="flex items-center gap-2 opacity-90">{icon}<p className="text-xs font-medium">{label}</p></div>
       <p className="text-2xl font-bold tabular-nums mt-1">{value}</p>
+    </div>
+  );
+}
+
+function MiniTile({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
+  return (
+    <div className={cn("rounded-xl px-3 py-2 flex flex-col items-center gap-1 text-center", color)}>
+      <div className="flex items-center gap-1 text-xs font-medium">{icon}{label}</div>
+      <p className="text-lg font-bold tabular-nums">{value}</p>
     </div>
   );
 }
 
 function EmptyBoarders() {
   return (
-    <div className="rounded-2xl border bg-card p-10 text-center">
+    <div className="p-10 text-center">
       <UtensilsCrossed className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-      <p className="font-medium">No active boarders yet</p>
-      <p className="text-sm text-muted-foreground mt-1">Add boarders first to record meals.</p>
+      <p className="font-medium">কোনো মিল এন্ট্রি নেই</p>
+      <p className="text-sm text-muted-foreground mt-1">প্রথমে সদস্য যোগ করুন।</p>
     </div>
   );
 }
