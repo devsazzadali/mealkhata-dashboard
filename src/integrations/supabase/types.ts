@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      advertisements: {
+        Row: {
+          active: boolean
+          body: string | null
+          created_at: string
+          created_by: string
+          id: string
+          image_url: string | null
+          link_url: string | null
+          mess_id: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          mess_id: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          mess_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: false
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazar_schedule: {
+        Row: {
+          boarder_id: string
+          created_at: string
+          done: boolean
+          id: string
+          mess_id: string
+          notes: string | null
+          schedule_date: string
+        }
+        Insert: {
+          boarder_id: string
+          created_at?: string
+          done?: boolean
+          id?: string
+          mess_id: string
+          notes?: string | null
+          schedule_date: string
+        }
+        Update: {
+          boarder_id?: string
+          created_at?: string
+          done?: boolean
+          id?: string
+          mess_id?: string
+          notes?: string | null
+          schedule_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazar_schedule_boarder_id_fkey"
+            columns: ["boarder_id"]
+            isOneToOne: false
+            referencedRelation: "boarders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazar_schedule_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: false
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boarders: {
         Row: {
           balance: number
@@ -136,6 +225,50 @@ export type Database = {
           },
           {
             foreignKeyName: "deposits_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: false
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          event_time: string | null
+          id: string
+          location: string | null
+          mess_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          event_time?: string | null
+          id?: string
+          location?: string | null
+          mess_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          location?: string | null
+          mess_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_mess_id_fkey"
             columns: ["mess_id"]
             isOneToOne: false
             referencedRelation: "messes"
@@ -270,6 +403,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      feedback: {
+        Row: {
+          created_at: string
+          id: string
+          mess_id: string
+          message: string
+          rating: number | null
+          status: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mess_id: string
+          message: string
+          rating?: number | null
+          status?: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mess_id?: string
+          message?: string
+          rating?: number | null
+          status?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: false
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_items: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          mess_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          mess_id: string
+          uploaded_by: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          mess_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_items_mess_id_fkey"
+            columns: ["mess_id"]
+            isOneToOne: false
+            referencedRelation: "messes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       join_requests: {
         Row: {
@@ -843,6 +1052,7 @@ export type Database = {
         Args: { _mess_id: string; _month: number; _year: number }
         Returns: string
       }
+      find_mess_by_join_key: { Args: { _key: string }; Returns: string }
       generate_monthly_bills: {
         Args: { _mess_id: string; _month: number; _year: number }
         Returns: number
