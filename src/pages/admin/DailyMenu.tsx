@@ -29,7 +29,7 @@ type DailyMenu = {
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 export default function DailyMenu() {
-  const messId = useAuthStore((s) => s.messId);
+  const messId = useAuthStore((s) => s.mess_id);
   const qc = useQueryClient();
 
   const [open, setOpen] = useState(false);
