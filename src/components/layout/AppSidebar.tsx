@@ -16,12 +16,18 @@ const adminItems = [
   { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
   { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
   { to: "/app/expenses", label: "বাজার ও খরচ", icon: ShoppingCart },
+  { to: "/app/extra-bills", label: "এক্সট্রা বিল", icon: Zap },
+  { to: "/app/deposits", label: "ডিপোজিট", icon: Wallet },
   { to: "/app/monthly-bills", label: "বিল ও পেমেন্ট", icon: Receipt },
+  { to: "/app/stock", label: "স্টক", icon: Package },
   { to: "/app/notices", label: "নোটিশ বোর্ড", icon: Megaphone },
   { to: "/app/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
   { to: "/app/reports", label: "রিপোর্ট", icon: BarChart3 },
   { to: "/app/events", label: "ইভেন্ট", icon: CalendarDays },
   { to: "/app/ads", label: "বিজ্ঞাপন দিন", icon: Megaphone },
+  { to: "/app/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
+  { to: "/app/join-requests", label: "জয়েন রিকোয়েস্ট", icon: UserPlus },
+  { to: "/app/profile", label: "প্রোফাইল", icon: User },
   { to: "/app/settings", label: "সেটিংস", icon: Settings },
 ];
 
