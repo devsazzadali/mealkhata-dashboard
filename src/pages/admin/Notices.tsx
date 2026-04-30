@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Megaphone, Pin, Trash2 } from "lucide-react";
+import { Plus, Megaphone, Pin, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -21,7 +21,7 @@ export default function Notices() {
   const userId = useAuthStore((s) => s.user?.id);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", content: "", is_pinned: false });
+  const [form, setForm] = useState({ title: "", content: "", is_pinned: false, is_emergency: false });
 
   const { data: notices, isLoading } = useQuery({
     queryKey: ["notices", messId],
@@ -45,12 +45,13 @@ export default function Notices() {
       title: form.title.trim(),
       content: form.content.trim(),
       is_pinned: form.is_pinned,
+      is_emergency: form.is_emergency,
       created_by: userId,
-    });
+    } as any);
     if (error) return toast.error(error.message);
-    toast.success("Notice published");
+    toast.success(form.is_emergency ? "🚨 জরুরি notice পাঠানো হয়েছে" : "Notice published");
     setOpen(false);
-    setForm({ title: "", content: "", is_pinned: false });
+    setForm({ title: "", content: "", is_pinned: false, is_emergency: false });
     qc.invalidateQueries({ queryKey: ["notices", messId] });
   }
 
@@ -96,6 +97,16 @@ export default function Notices() {
                 </div>
                 <Switch checked={form.is_pinned} onCheckedChange={(v) => setForm({ ...form, is_pinned: v })} />
               </div>
+              <div className={`flex items-center justify-between rounded-xl border p-3 ${form.is_emergency ? "border-destructive/60 bg-destructive/5" : ""}`}>
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className={`w-4 h-4 mt-0.5 ${form.is_emergency ? "text-destructive" : "text-muted-foreground"}`} />
+                  <div>
+                    <Label className="cursor-pointer">Emergency 🚨</Label>
+                    <p className="text-[11px] text-muted-foreground">সবার phone-এ alarm sound + full-screen popup আসবে।</p>
+                  </div>
+                </div>
+                <Switch checked={form.is_emergency} onCheckedChange={(v) => setForm({ ...form, is_emergency: v })} />
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleCreate}>Publish</Button>
@@ -114,11 +125,12 @@ export default function Notices() {
       ) : (
         <div className="space-y-3">
           {notices?.map((n) => (
-            <div key={n.id} className={`rounded-2xl border bg-card p-4 ${n.is_pinned ? "border-primary/50" : ""}`}>
+            <div key={n.id} className={`rounded-2xl border bg-card p-4 ${(n as any).is_emergency ? "border-destructive/60 bg-destructive/5" : n.is_pinned ? "border-primary/50" : ""}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold">{n.title}</h3>
+                    {(n as any).is_emergency && <Badge className="bg-destructive text-destructive-foreground gap-1"><AlertTriangle className="w-3 h-3" /> Emergency</Badge>}
                     {n.is_pinned && <Badge variant="outline" className="border-primary text-primary gap-1"><Pin className="w-3 h-3" /> Pinned</Badge>}
                   </div>
                   <p className="text-sm text-foreground/80 mt-1.5 whitespace-pre-wrap">{n.content}</p>

@@ -910,12 +910,34 @@ export type Database = {
         }
         Relationships: []
       }
+      notice_acks: {
+        Row: {
+          acked_at: string
+          id: string
+          notice_id: string
+          user_id: string
+        }
+        Insert: {
+          acked_at?: string
+          id?: string
+          notice_id: string
+          user_id: string
+        }
+        Update: {
+          acked_at?: string
+          id?: string
+          notice_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notices: {
         Row: {
           content: string
           created_at: string
           created_by: string | null
           id: string
+          is_emergency: boolean
           is_pinned: boolean
           mess_id: string
           title: string
@@ -925,6 +947,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_emergency?: boolean
           is_pinned?: boolean
           mess_id: string
           title: string
@@ -934,6 +957,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_emergency?: boolean
           is_pinned?: boolean
           mess_id?: string
           title?: string

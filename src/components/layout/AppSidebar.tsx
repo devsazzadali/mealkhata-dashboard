@@ -35,6 +35,10 @@ const adminItems = [
 
 const boarderItems = [
   { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+  { to: "/me/bills", label: "আমার বিল", icon: Receipt },
+  { to: "/me/deposits", label: "আমার ডিপোজিট", icon: Wallet },
+  { to: "/me/expenses", label: "মেসের খরচ", icon: ShoppingCart },
+  { to: "/me/bazar", label: "বাজার শিডিউল", icon: CalendarClock },
   { to: "/me/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
   { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
   { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
@@ -89,8 +93,9 @@ export function MobileBottomNav() {
   const items = useNavItems();
   // Pick 5 most useful for mobile
   const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/profile"];
-  const boarderMobile = ["/me", "/me/chat", "/me/profile"];
-  const mobileSet = new Set(items === adminItems ? adminMobile : boarderMobile);
+  const boarderMobile = ["/me", "/me/bills", "/me/chat", "/me/daily-menu", "/me/profile"];
+  const isAdminList = items.some((i) => i.to === "/app");
+  const mobileSet = new Set(isAdminList ? adminMobile : boarderMobile);
   const mobileItems = items.filter((i) => mobileSet.has(i.to));
 
   return (
