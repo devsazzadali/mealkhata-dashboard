@@ -93,8 +93,9 @@ export function MobileBottomNav() {
   const items = useNavItems();
   // Pick 5 most useful for mobile
   const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/profile"];
-  const boarderMobile = ["/me", "/me/chat", "/me/profile"];
-  const mobileSet = new Set(items === adminItems ? adminMobile : boarderMobile);
+  const boarderMobile = ["/me", "/me/bills", "/me/chat", "/me/daily-menu", "/me/profile"];
+  const isAdminList = items.some((i) => i.to === "/app");
+  const mobileSet = new Set(isAdminList ? adminMobile : boarderMobile);
   const mobileItems = items.filter((i) => mobileSet.has(i.to));
 
   return (
