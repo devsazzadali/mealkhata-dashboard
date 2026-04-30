@@ -21,6 +21,13 @@ import Stocks from "./pages/admin/Stocks";
 import Notices from "./pages/admin/Notices";
 import Settings from "./pages/admin/Settings";
 import MyDashboard from "./pages/boarder/MyDashboard";
+import MyBills from "./pages/boarder/MyBills";
+import MyExpenses from "./pages/boarder/MyExpenses";
+import MyDeposits from "./pages/boarder/MyDeposits";
+import MyBazar from "./pages/boarder/MyBazar";
+import Install from "./pages/Install";
+import NotificationManager from "./components/NotificationManager";
+import EmergencyNoticePopup from "./components/EmergencyNoticePopup";
 import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
 import Call from "./pages/Call";
@@ -51,11 +58,14 @@ const App = () => (
         <Sonner position="top-right" richColors closeButton />
         <BrowserRouter>
           <AuthProvider>
+            <NotificationManager />
+            <EmergencyNoticePopup />
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/home" element={<RoleRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/install" element={<Install />} />
               <Route
                 path="/onboarding"
                 element={
@@ -126,6 +136,10 @@ const App = () => (
                 }
               >
                 <Route index element={<MyDashboard />} />
+                <Route path="bills" element={<MyBills />} />
+                <Route path="expenses" element={<MyExpenses />} />
+                <Route path="deposits" element={<MyDeposits />} />
+                <Route path="bazar" element={<MyBazar />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="gallery" element={<Gallery />} />
                 <Route path="daily-menu" element={<DailyMenu />} />

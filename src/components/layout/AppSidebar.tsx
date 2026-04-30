@@ -35,6 +35,10 @@ const adminItems = [
 
 const boarderItems = [
   { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+  { to: "/me/bills", label: "আমার বিল", icon: Receipt },
+  { to: "/me/deposits", label: "আমার ডিপোজিট", icon: Wallet },
+  { to: "/me/expenses", label: "মেসের খরচ", icon: ShoppingCart },
+  { to: "/me/bazar", label: "বাজার শিডিউল", icon: CalendarClock },
   { to: "/me/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
   { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
   { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
