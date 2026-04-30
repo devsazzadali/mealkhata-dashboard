@@ -58,7 +58,7 @@ export default function MealRequests() {
         dinner: r.dinner ? 1 : 0,
         guest: r.guest ?? 0,
         created_by: user?.id,
-      } as any, { onConflict: "mess_id,boarder_id,meal_date" });
+      } as any, { onConflict: "boarder_id,meal_date" });
       if (insErr) toast.error("Approve হয়েছে কিন্তু meal entry update হয়নি: " + insErr.message);
     }
     toast.success(action === "approved" ? "Approve করা হয়েছে" : "Reject করা হয়েছে");
