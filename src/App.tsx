@@ -34,6 +34,7 @@ import BazarSchedule from "./pages/admin/BazarSchedule";
 import Feedback from "./pages/admin/Feedback";
 import Events from "./pages/admin/Events";
 import Advertisements from "./pages/admin/Advertisements";
+import DailyMenu from "./pages/admin/DailyMenu";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
@@ -93,6 +94,7 @@ const App = () => (
                 <Route index element={<MessDashboard />} />
                 <Route path="boarders" element={<Boarders />} />
                 <Route path="meals" element={<Meals />} />
+                <Route path="daily-menu" element={<DailyMenu />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="deposits" element={<Deposits />} />
                 <Route path="balance" element={<Balance />} />
@@ -124,6 +126,7 @@ const App = () => (
                 <Route index element={<MyDashboard />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="gallery" element={<Gallery />} />
+                <Route path="daily-menu" element={<DailyMenu />} />
                 <Route path="events" element={<Events />} />
                 <Route path="feedback" element={<Feedback />} />
                 <Route path="ads" element={<Advertisements />} />
