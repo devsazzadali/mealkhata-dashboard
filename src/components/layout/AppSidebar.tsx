@@ -11,8 +11,9 @@ import { cn } from "@/lib/utils";
 const adminItems = [
   { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
   { to: "/app/boarders", label: "সদস্যবৃন্দ", icon: Users },
-  { to: "/app/meals", label: "আজকের মেনু", icon: UtensilsCrossed },
-  { to: "/app/balance", label: "মিল ব্যবস্থাপনা", icon: Calculator },
+  { to: "/app/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
+  { to: "/app/meals", label: "মিল ব্যবস্থাপনা", icon: Calculator },
+  { to: "/app/balance", label: "ব্যালেন্স", icon: Wallet },
   { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
   { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
   { to: "/app/expenses", label: "বাজার ও খরচ", icon: ShoppingCart },
@@ -33,6 +34,7 @@ const adminItems = [
 
 const boarderItems = [
   { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+  { to: "/me/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
   { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
   { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
   { to: "/me/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
