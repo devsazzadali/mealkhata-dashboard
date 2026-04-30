@@ -29,6 +29,11 @@ import ExtraBills from "./pages/admin/ExtraBills";
 import MonthlyBills from "./pages/admin/MonthlyBills";
 import Reports from "./pages/admin/Reports";
 import { PlaceholderPage } from "./components/PlaceholderPage";
+import Gallery from "./pages/admin/Gallery";
+import BazarSchedule from "./pages/admin/BazarSchedule";
+import Feedback from "./pages/admin/Feedback";
+import Events from "./pages/admin/Events";
+import Advertisements from "./pages/admin/Advertisements";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
@@ -98,6 +103,11 @@ const App = () => (
                 <Route path="notices" element={<Notices />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="join-requests" element={<JoinRequests />} />
+                <Route path="gallery" element={<Gallery />} />
+                <Route path="bazar-schedule" element={<BazarSchedule />} />
+                <Route path="feedback" element={<Feedback />} />
+                <Route path="events" element={<Events />} />
+                <Route path="ads" element={<Advertisements />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
@@ -113,6 +123,10 @@ const App = () => (
               >
                 <Route index element={<MyDashboard />} />
                 <Route path="chat" element={<Chat />} />
+                <Route path="gallery" element={<Gallery />} />
+                <Route path="events" element={<Events />} />
+                <Route path="feedback" element={<Feedback />} />
+                <Route path="ads" element={<Advertisements />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
 
