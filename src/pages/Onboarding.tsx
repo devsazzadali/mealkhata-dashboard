@@ -52,18 +52,17 @@ export default function Onboarding() {
       return toast.error("Fill all fields");
     }
     setSubmitting(true);
-    // Find mess by join_key
-    const { data: settings } = await supabase
-      .from("mess_settings")
-      .select("mess_id")
-      .eq("join_key", joinKey.trim().toLowerCase())
-      .maybeSingle();
-    if (!settings?.mess_id) {
+    // Find mess by join_key via secure RPC (works even before user joins any mess)
+    const { data: foundMessId, error: lookupErr } = await supabase.rpc(
+      "find_mess_by_join_key",
+      { _key: joinKey.trim() }
+    );
+    if (lookupErr || !foundMessId) {
       setSubmitting(false);
       return toast.error("Invalid join key");
     }
     const { error } = await supabase.from("join_requests").insert({
-      mess_id: settings.mess_id,
+      mess_id: foundMessId as string,
       user_id: user.id,
       requested_name: joinName.trim(),
       requested_phone: joinPhone.trim(),
