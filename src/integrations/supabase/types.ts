@@ -178,6 +178,45 @@ export type Database = {
           },
         ]
       }
+      daily_menus: {
+        Row: {
+          breakfast: string
+          created_at: string
+          created_by: string | null
+          dinner: string
+          id: string
+          lunch: string
+          menu_date: string
+          mess_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          breakfast?: string
+          created_at?: string
+          created_by?: string | null
+          dinner?: string
+          id?: string
+          lunch?: string
+          menu_date: string
+          mess_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          breakfast?: string
+          created_at?: string
+          created_by?: string | null
+          dinner?: string
+          id?: string
+          lunch?: string
+          menu_date?: string
+          mess_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           amount: number
