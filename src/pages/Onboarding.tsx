@@ -49,29 +49,56 @@ export default function Onboarding() {
   const requestJoin = async () => {
     if (!user) return;
     if (!joinKey.trim() || !joinName.trim() || !joinPhone.trim()) {
-      return toast.error("Fill all fields");
+      return toast.error("সব তথ্য পূরণ করুন");
     }
     setSubmitting(true);
-    // Find mess by join_key via secure RPC (works even before user joins any mess)
-    const { data: foundMessId, error: lookupErr } = await supabase.rpc(
-      "find_mess_by_join_key",
-      { _key: joinKey.trim() }
-    );
-    if (lookupErr || !foundMessId) {
+    try {
+      const { data: foundMessId, error: lookupErr } = await supabase.rpc(
+        "find_mess_by_join_key",
+        { _key: joinKey.trim() }
+      );
+      if (lookupErr) {
+        console.error("RPC lookup error:", lookupErr);
+        toast.error("Join key যাচাই করা যায়নি");
+        return;
+      }
+      if (!foundMessId) {
+        toast.error("ভুল join key — admin এর কাছ থেকে সঠিক key নিন");
+        return;
+      }
+
+      // Check existing pending request for same mess
+      const { data: existing } = await supabase
+        .from("join_requests")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("mess_id", foundMessId as string)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (existing) {
+        toast.success("আপনার request আগেই পাঠানো হয়েছে — admin approval এর অপেক্ষায়");
+        setRequestSent(true);
+        return;
+      }
+
+      const { error } = await supabase.from("join_requests").insert({
+        mess_id: foundMessId as string,
+        user_id: user.id,
+        requested_name: joinName.trim(),
+        requested_phone: joinPhone.trim(),
+        message: joinMsg.trim() || null,
+      });
+      if (error) {
+        console.error("Insert error:", error);
+        toast.error(error.message || "Request পাঠানো যায়নি");
+        return;
+      }
+      toast.success("Request পাঠানো হয়েছে! Admin approval এর অপেক্ষায় থাকুন।");
+      setRequestSent(true);
+    } finally {
       setSubmitting(false);
-      return toast.error("Invalid join key");
     }
-    const { error } = await supabase.from("join_requests").insert({
-      mess_id: foundMessId as string,
-      user_id: user.id,
-      requested_name: joinName.trim(),
-      requested_phone: joinPhone.trim(),
-      message: joinMsg.trim() || null,
-    });
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success("Request sent! Wait for admin approval.");
-    setRequestSent(true);
   };
 
   return (
