@@ -35,6 +35,7 @@ import Feedback from "./pages/admin/Feedback";
 import Events from "./pages/admin/Events";
 import Advertisements from "./pages/admin/Advertisements";
 import DailyMenu from "./pages/admin/DailyMenu";
+import MealRequests from "./pages/admin/MealRequests";
 import SuperMesses from "./pages/super/SuperMesses";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
@@ -94,6 +95,7 @@ const App = () => (
                 <Route index element={<MessDashboard />} />
                 <Route path="boarders" element={<Boarders />} />
                 <Route path="meals" element={<Meals />} />
+                <Route path="meal-requests" element={<MealRequests />} />
                 <Route path="daily-menu" element={<DailyMenu />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="deposits" element={<Deposits />} />

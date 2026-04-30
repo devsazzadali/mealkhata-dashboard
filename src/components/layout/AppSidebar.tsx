@@ -13,6 +13,7 @@ const adminItems = [
   { to: "/app/boarders", label: "সদস্যবৃন্দ", icon: Users },
   { to: "/app/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
   { to: "/app/meals", label: "মিল ব্যবস্থাপনা", icon: Calculator },
+  { to: "/app/meal-requests", label: "মিল রিকোয়েস্ট", icon: UtensilsCrossed },
   { to: "/app/balance", label: "ব্যালেন্স", icon: Wallet },
   { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
   { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
