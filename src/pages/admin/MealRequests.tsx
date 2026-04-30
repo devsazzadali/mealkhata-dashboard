@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, X, UtensilsCrossed, Coffee, Sun, Moon, Users, Calendar } from "lucide-react";
+import { Check, X, UtensilsCrossed, Coffee, Sun, Moon, Users, Calendar, Search, CheckCheck } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,11 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+
+type Status = "pending" | "approved" | "rejected";
 
 export default function MealRequests() {
   const { profile, user } = useAuthStore();
   const messId = profile?.mess_id;
   const qc = useQueryClient();
+  const [tab, setTab] = useState<Status>("pending");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["meal-requests", messId],
@@ -41,13 +49,43 @@ export default function MealRequests() {
     return () => { supabase.removeChannel(ch); };
   }, [messId, qc]);
 
-  const decide = async (r: any, action: "approved" | "rejected") => {
+  // reset selection when tab changes
+  useEffect(() => { setSelected(new Set()); }, [tab]);
+
+  const counts = useMemo(() => {
+    const all = data ?? [];
+    return {
+      pending: all.filter((r: any) => r.status === "pending").length,
+      approved: all.filter((r: any) => r.status === "approved").length,
+      rejected: all.filter((r: any) => r.status === "rejected").length,
+    };
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    const all = (data ?? []).filter((r: any) => r.status === tab);
+    if (!search.trim()) return all;
+    const q = search.toLowerCase();
+    return all.filter((r: any) => (r.boarders?.full_name ?? "").toLowerCase().includes(q));
+  }, [data, tab, search]);
+
+  const toggleOne = (id: string) => {
+    setSelected((s) => {
+      const n = new Set(s);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+  const toggleAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((r: any) => r.id)));
+  };
+
+  const decideOne = async (r: any, action: "approved" | "rejected") => {
     const { error } = await supabase.from("meal_requests")
       .update({ status: action, decided_by: user?.id, decided_at: new Date().toISOString() })
       .eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) throw error;
 
-    // If approved, also upsert into meal_entries
     if (action === "approved") {
       const { error: insErr } = await supabase.from("meal_entries").upsert({
         mess_id: r.mess_id,
@@ -59,52 +97,119 @@ export default function MealRequests() {
         guest: r.guest ?? 0,
         created_by: user?.id,
       } as any, { onConflict: "boarder_id,meal_date" });
-      if (insErr) toast.error("Approve হয়েছে কিন্তু meal entry update হয়নি: " + insErr.message);
+      if (insErr) throw insErr;
     }
-    toast.success(action === "approved" ? "Approve করা হয়েছে" : "Reject করা হয়েছে");
-    qc.invalidateQueries({ queryKey: ["meal-requests", messId] });
   };
 
-  const pending = (data ?? []).filter((r: any) => r.status === "pending");
-  const decided = (data ?? []).filter((r: any) => r.status !== "pending");
+  const decide = async (r: any, action: "approved" | "rejected") => {
+    try {
+      await decideOne(r, action);
+      toast.success(action === "approved" ? "Approve করা হয়েছে" : "Reject করা হয়েছে");
+      qc.invalidateQueries({ queryKey: ["meal-requests", messId] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const bulkDecide = async (action: "approved" | "rejected") => {
+    const targets = filtered.filter((r: any) => selected.has(r.id) && r.status === "pending");
+    if (targets.length === 0) return toast.info("কোনো pending request নির্বাচন করা নেই");
+    setBusy(true);
+    let ok = 0, fail = 0;
+    for (const r of targets) {
+      try { await decideOne(r, action); ok++; } catch { fail++; }
+    }
+    setBusy(false);
+    setSelected(new Set());
+    qc.invalidateQueries({ queryKey: ["meal-requests", messId] });
+    if (fail === 0) toast.success(`${ok} টি ${action === "approved" ? "approve" : "reject"} হয়েছে`);
+    else toast.warning(`${ok} সফল, ${fail} ব্যর্থ`);
+  };
+
+  const allChecked = filtered.length > 0 && selected.size === filtered.length;
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in max-w-4xl">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">মিল Requests</h1>
         <p className="text-sm text-muted-foreground mt-1">Boarders এর মিল on/off ও guest meal requests</p>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+      <Tabs value={tab} onValueChange={(v) => setTab(v as Status)}>
+        <TabsList>
+          <TabsTrigger value="pending">
+            অপেক্ষমান {counts.pending > 0 && <Badge className="ml-2 h-5 px-1.5">{counts.pending}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="approved">
+            Approved {counts.approved > 0 && <Badge variant="secondary" className="ml-2 h-5 px-1.5">{counts.approved}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Rejected {counts.rejected > 0 && <Badge variant="secondary" className="ml-2 h-5 px-1.5">{counts.rejected}</Badge>}
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="mt-4 flex items-center gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="নাম দিয়ে খুঁজুন..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {tab === "pending" && filtered.length > 0 && (
+            <>
+              <Button variant="outline" size="sm" onClick={toggleAll}>
+                <CheckCheck className="w-4 h-4 mr-1" />
+                {allChecked ? "Unselect all" : "Select all"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selected.size === 0 || busy}
+                onClick={() => bulkDecide("rejected")}
+              >
+                <X className="w-4 h-4 mr-1" /> Reject ({selected.size})
+              </Button>
+              <Button
+                size="sm"
+                disabled={selected.size === 0 || busy}
+                onClick={() => bulkDecide("approved")}
+              >
+                <Check className="w-4 h-4 mr-1" /> Approve ({selected.size})
+              </Button>
+            </>
+          )}
         </div>
-      ) : (
-        <Tabs defaultValue="pending">
-          <TabsList>
-            <TabsTrigger value="pending">
-              অপেক্ষমান {pending.length > 0 && <Badge className="ml-2 h-5 px-1.5">{pending.length}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="history">ইতিহাস</TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="pending" className="mt-4 space-y-2">
-            {pending.length === 0 ? (
-              <EmptyState text="কোনো অপেক্ষমান request নেই" />
-            ) : pending.map((r: any) => (
-              <RequestCard key={r.id} r={r} onApprove={() => decide(r, "approved")} onReject={() => decide(r, "rejected")} />
-            ))}
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-4 space-y-2">
-            {decided.length === 0 ? (
-              <EmptyState text="এখনও কোনো decision নেওয়া হয়নি" />
-            ) : decided.map((r: any) => (
-              <RequestCard key={r.id} r={r} readonly />
-            ))}
-          </TabsContent>
-        </Tabs>
-      )}
+        <TabsContent value={tab} className="mt-4 space-y-2">
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState text={
+              tab === "pending" ? "কোনো অপেক্ষমান request নেই" :
+              tab === "approved" ? "এখনও কোনো approved request নেই" :
+              "এখনও কোনো rejected request নেই"
+            } />
+          ) : (
+            filtered.map((r: any) => (
+              <RequestCard
+                key={r.id}
+                r={r}
+                selectable={tab === "pending"}
+                checked={selected.has(r.id)}
+                onCheck={() => toggleOne(r.id)}
+                onApprove={() => decide(r, "approved")}
+                onReject={() => decide(r, "rejected")}
+                readonly={tab !== "pending"}
+              />
+            ))
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -118,7 +223,12 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-function RequestCard({ r, onApprove, onReject, readonly }: { r: any; onApprove?: () => void; onReject?: () => void; readonly?: boolean }) {
+function RequestCard({
+  r, onApprove, onReject, readonly, selectable, checked, onCheck,
+}: {
+  r: any; onApprove?: () => void; onReject?: () => void; readonly?: boolean;
+  selectable?: boolean; checked?: boolean; onCheck?: () => void;
+}) {
   const items: { label: string; icon: any }[] = [];
   if (r.breakfast) items.push({ label: "নাশতা", icon: Coffee });
   if (r.lunch) items.push({ label: "দুপুর", icon: Sun });
@@ -127,6 +237,11 @@ function RequestCard({ r, onApprove, onReject, readonly }: { r: any; onApprove?:
   return (
     <div className="rounded-2xl border bg-card p-4">
       <div className="flex items-start gap-3">
+        {selectable && (
+          <div className="pt-1">
+            <Checkbox checked={checked} onCheckedChange={onCheck} />
+          </div>
+        )}
         {r.boarders?.photo_url ? (
           <img src={r.boarders.photo_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
         ) : (
