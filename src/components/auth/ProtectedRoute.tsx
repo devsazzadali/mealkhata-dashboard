@@ -1,6 +1,9 @@
-import { Navigate, useLocation } from "react-router-dom";
+"use client";
+
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore, getPrimaryRole, type AppRole } from "@/stores/authStore";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface Props {
   children: React.ReactNode;
@@ -9,7 +12,26 @@ interface Props {
 
 export function ProtectedRoute({ children, allow }: Props) {
   const { initialized, session, roles, loading } = useAuthStore();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (initialized && !loading) {
+      if (!session) {
+        router.replace(`/login?from=${encodeURIComponent(pathname)}`);
+        return;
+      }
+
+      if (allow && !roles.some((r) => allow.includes(r))) {
+        const primary = getPrimaryRole(roles);
+        if (primary) {
+          router.replace(routeForRole(primary));
+        } else {
+          router.replace("/onboarding");
+        }
+      }
+    }
+  }, [initialized, loading, session, roles, allow, router, pathname]);
 
   if (!initialized || loading) {
     return (
@@ -19,13 +41,9 @@ export function ProtectedRoute({ children, allow }: Props) {
     );
   }
 
-  if (!session) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!session) return null;
 
-  if (allow && !roles.some((r) => allow.includes(r))) {
-    const primary = getPrimaryRole(roles);
-    if (primary) return <Navigate to={routeForRole(primary)} replace />;
-    return <Navigate to="/onboarding" replace />;
-  }
+  if (allow && !roles.some((r) => allow.includes(r))) return null;
 
   return <>{children}</>;
 }

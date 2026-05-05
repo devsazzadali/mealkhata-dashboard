@@ -47,12 +47,12 @@ export function CreateBoarderDialog({ open, onOpenChange }: Props) {
     setSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-boarder`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-boarder`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
         },
         body: JSON.stringify({
           full_name: vals.full_name,

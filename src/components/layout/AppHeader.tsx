@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Bell, LogOut, Moon, Sun, UtensilsCrossed } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function AppHeader() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { profile, signOut, roles } = useAuthStore();
   const { theme, toggle } = useTheme();
   const initials =
@@ -70,7 +70,7 @@ export function AppHeader() {
                 <div className="text-muted-foreground">{profile?.phone}</div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut().then(() => navigate("/login"))} className="text-destructive">
+              <DropdownMenuItem onClick={() => signOut().then(() => router.push("/login"))} className="text-destructive">
                 <LogOut className="w-4 h-4 mr-2" /> Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -1,4 +1,5 @@
-import { NavLink, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package,
   Megaphone, Settings, Calculator, MessageCircle, UserPlus, User,
@@ -55,6 +56,7 @@ function useNavItems() {
 }
 
 export function AppSidebar() {
+  const pathname = usePathname();
   const items = useNavItems();
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 border-r bg-sidebar text-sidebar-foreground">
@@ -65,31 +67,31 @@ export function AppSidebar() {
         <span className="font-bold text-lg">Meal<span className="text-gradient">Khata</span></span>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {items.map((it) => (
-          <NavLink
-            key={it.to}
-            to={it.to}
-            end={it.end}
-            className={({ isActive }) =>
-              cn(
+        {items.map((it) => {
+          const isActive = it.end ? pathname === it.to : pathname?.startsWith(it.to);
+          return (
+            <Link
+              key={it.to}
+              href={it.to}
+              className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-              )
-            }
-          >
-            <it.icon className="w-4 h-4" />
-            {it.label}
-          </NavLink>
-        ))}
+              )}
+            >
+              <it.icon className="w-4 h-4" />
+              {it.label}
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );
 }
 
 export function MobileBottomNav() {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const items = useNavItems();
   // Pick 5 most useful for mobile
   const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/profile"];
@@ -102,12 +104,11 @@ export function MobileBottomNav() {
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t">
       <div className="grid h-16" style={{ gridTemplateColumns: `repeat(${mobileItems.length}, minmax(0, 1fr))` }}>
         {mobileItems.map((it) => {
-          const active = it.end ? pathname === it.to : pathname.startsWith(it.to);
+          const active = it.end ? pathname === it.to : pathname?.startsWith(it.to);
           return (
-            <NavLink
+            <Link
               key={it.to}
-              to={it.to}
-              end={it.end}
+              href={it.to}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors",
                 active ? "text-primary" : "text-muted-foreground"
@@ -115,7 +116,7 @@ export function MobileBottomNav() {
             >
               <it.icon className={cn("w-5 h-5", active && "drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]")} />
               {it.label}
-            </NavLink>
+            </Link>
           );
         })}
       </div>

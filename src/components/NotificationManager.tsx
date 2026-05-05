@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,9 +21,9 @@ export default function NotificationManager() {
   const messId = profile?.mess_id;
   const userId = user?.id;
   const { play } = useNotificationSound();
-  const { pathname } = useLocation();
-  const pathnameRef = useRef(pathname);
-  pathnameRef.current = pathname;
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname || "");
+  pathnameRef.current = pathname || "";
 
   useEffect(() => {
     if (!messId || !userId) return;
