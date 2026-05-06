@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Zap, Trash2, Pencil } from "lucide-react";
+import { Plus, Zap, Trash2, Pencil, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
@@ -128,11 +128,45 @@ export default function ExtraBills() {
             বিদ্যুৎ, গ্যাস, ওয়াইফাই, ভাড়া · এই মাসে: <span className="font-semibold text-foreground">{formatBdt(total)}</span>
           </p>
         </div>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(empty); }}>
-          <DialogTrigger asChild>
-            <Button className="shadow-glow gap-2"><Plus className="w-4 h-4" /> Add Bill</Button>
-          </DialogTrigger>
-          <DialogContent>
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              const { data: s } = await supabase.from("mess_settings").select("bank_info").eq("mess_id", messId!).single();
+              if (!s?.bank_info || !s.bank_info.startsWith("{")) return toast.error("প্রথমে মেস সেটিংসে গিয়ে অটো-বিল সেট করুন");
+              
+              const recurring = JSON.parse(s.bank_info).recurring;
+              const billsToAdd = [
+                { title: "খালার বিল", amount: Number(recurring.khala), category: "service" },
+                { title: "বিদ্যুৎ বিল (স্থায়ী)", amount: Number(recurring.electricity), category: "electricity" },
+                { title: "ওয়াইফাই বিল", amount: Number(recurring.wifi), category: "wifi" },
+                { title: "গ্যাস বিল", amount: Number(recurring.gas), category: "gas" },
+              ].filter(b => b.amount > 0);
+
+              if (billsToAdd.length === 0) return toast.error("সেটিংসে কোনো বিল সেট করা নেই");
+
+              const { error } = await supabase.from("extra_bills").insert(
+                billsToAdd.map(b => ({
+                  ...b,
+                  mess_id: messId!,
+                  bill_date: new Date().toISOString().slice(0, 10),
+                  split_method: "equal",
+                  created_by: userId
+                }))
+              );
+              if (error) return toast.error(error.message);
+              toast.success("অটোমেটিক বিলগুলো যোগ করা হয়েছে");
+              qc.invalidateQueries({ queryKey: ["extra_bills"] });
+            }} 
+            className="gap-2 border-primary/30 text-primary hover:bg-primary/5"
+          >
+            <Sparkles className="w-4 h-4" /> অটো-বিল যোগ করুন
+          </Button>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(empty); }}>
+            <DialogTrigger asChild>
+              <Button className="shadow-glow gap-2"><Plus className="w-4 h-4" /> Add Bill</Button>
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader><DialogTitle>{form.id ? "Edit" : "New"} Extra Bill</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">

@@ -4,49 +4,65 @@ import {
   LayoutDashboard, Users, UtensilsCrossed, Wallet, Receipt, Package,
   Megaphone, Settings, Calculator, MessageCircle, UserPlus, User,
   Zap, FileText, BarChart3, Image as ImageIcon, CalendarClock,
-  MessageSquareHeart, CalendarDays, ShoppingCart,
+  MessageSquareHeart, CalendarDays, ShoppingCart, Building2, Wheat
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 
 const adminItems = [
-  { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
-  { to: "/app/boarders", label: "সদস্যবৃন্দ", icon: Users },
-  { to: "/app/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
-  { to: "/app/meals", label: "মিল ব্যবস্থাপনা", icon: Calculator },
-  { to: "/app/meal-requests", label: "মিল রিকোয়েস্ট", icon: UtensilsCrossed },
-  { to: "/app/balance", label: "ব্যালেন্স", icon: Wallet },
-  { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
-  { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
-  { to: "/app/expenses", label: "বাজার ও খরচ", icon: ShoppingCart },
-  { to: "/app/extra-bills", label: "এক্সট্রা বিল", icon: Zap },
-  { to: "/app/deposits", label: "ডিপোজিট", icon: Wallet },
-  { to: "/app/monthly-bills", label: "বিল ও পেমেন্ট", icon: Receipt },
-  { to: "/app/stock", label: "স্টক", icon: Package },
-  { to: "/app/notices", label: "নোটিশ বোর্ড", icon: Megaphone },
-  { to: "/app/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
-  { to: "/app/reports", label: "রিপোর্ট", icon: BarChart3 },
-  { to: "/app/events", label: "ইভেন্ট", icon: CalendarDays },
-  { to: "/app/ads", label: "বিজ্ঞাপন দিন", icon: Megaphone },
-  { to: "/app/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
-  { to: "/app/join-requests", label: "জয়েন রিকোয়েস্ট", icon: UserPlus },
-  { to: "/app/profile", label: "প্রোফাইল", icon: User },
-  { to: "/app/settings", label: "সেটিংস", icon: Settings },
+  { group: "সারসংক্ষেপ", items: [
+    { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+    { to: "/app/reports", label: "রিপোর্ট", icon: BarChart3 },
+  ]},
+  { group: "সদস্য ও মিল", items: [
+    { to: "/app/boarders", label: "সদস্যবৃন্দ", icon: Users },
+    { to: "/app/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
+    { to: "/app/meals", label: "মিল ব্যবস্থাপনা", icon: Calculator },
+    { to: "/app/meal-requests", label: "মিল রিকোয়েস্ট", icon: UtensilsCrossed },
+  ]},
+  { group: "হিসাব-নিকাশ", items: [
+    { to: "/app/balance", label: "ব্যালেন্স", icon: Wallet },
+    { to: "/app/expenses", label: "বাজার ও খরচ", icon: ShoppingCart },
+    { to: "/app/deposits", label: "টাকা জমা (ডিপোজিট)", icon: Wallet },
+    { to: "/app/extra-bills", label: "এক্সট্রা বিল (বিদ্যুৎ/খালা)", icon: Zap },
+    { to: "/app/monthly-bills", label: "মাসিক বিল ও পেমেন্ট", icon: Receipt },
+  ]},
+  { group: "মেস ব্যবস্থাপনা", items: [
+    { to: "/app/mess-profile", label: "মেস প্রোফাইল", icon: Building2 },
+    { to: "/app/settings", label: "মেস সেটিংস", icon: Settings },
+    { to: "/app/stock", label: "স্টক", icon: Package },
+    { to: "/app/rice-management", label: "চাউল ব্যবস্থাপনা", icon: Wheat },
+    { to: "/app/bazar-schedule", label: "বাজার শিডিউল", icon: CalendarClock },
+    { to: "/app/join-requests", label: "জয়েন রিকোয়েস্ট", icon: UserPlus },
+  ]},
+  { group: "অন্যান্য", items: [
+    { to: "/app/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
+    { to: "/app/notices", label: "নোটিশ বোর্ড", icon: Megaphone },
+    { to: "/app/gallery", label: "গ্যালারি", icon: ImageIcon },
+    { to: "/app/events", label: "ইভেন্ট", icon: CalendarDays },
+    { to: "/app/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
+    { to: "/app/ads", label: "বিজ্ঞাপন", icon: Megaphone },
+  ]},
 ];
 
 const boarderItems = [
-  { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
-  { to: "/me/bills", label: "আমার বিল", icon: Receipt },
-  { to: "/me/deposits", label: "আমার ডিপোজিট", icon: Wallet },
-  { to: "/me/expenses", label: "মেসের খরচ", icon: ShoppingCart },
-  { to: "/me/bazar", label: "বাজার শিডিউল", icon: CalendarClock },
-  { to: "/me/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
-  { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
-  { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
-  { to: "/me/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
-  { to: "/me/ads", label: "বিজ্ঞাপন", icon: Megaphone },
-  { to: "/me/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
-  { to: "/me/profile", label: "প্রোফাইল", icon: User },
+  { group: "আমার ড্যাশবোর্ড", items: [
+    { to: "/me", label: "ড্যাশবোর্ড", icon: LayoutDashboard, end: true },
+    { to: "/me/bills", label: "আমার বিল", icon: Receipt },
+    { to: "/me/deposits", label: "আমার ডিপোজিট", icon: Wallet },
+  ]},
+  { group: "মেস তথ্য", items: [
+    { to: "/me/expenses", label: "মেসের খরচ", icon: ShoppingCart },
+    { to: "/me/bazar", label: "বাজার শিডিউল", icon: CalendarClock },
+    { to: "/me/daily-menu", label: "আজকের মেনু", icon: UtensilsCrossed },
+    { to: "/me/chat", label: "গ্রুপ চ্যাট", icon: MessageCircle },
+  ]},
+  { group: "অন্যান্য", items: [
+    { to: "/me/gallery", label: "গ্যালারি", icon: ImageIcon },
+    { to: "/me/events", label: "ইভেন্ট", icon: CalendarDays },
+    { to: "/me/feedback", label: "ফিডব্যাক", icon: MessageSquareHeart },
+    { to: "/me/profile", label: "প্রোফাইল", icon: User },
+  ]},
 ];
 
 function useNavItems() {
@@ -57,34 +73,44 @@ function useNavItems() {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const items = useNavItems();
+  const groups = useNavItems();
+
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 border-r bg-sidebar text-sidebar-foreground">
-      <div className="h-16 flex items-center px-5 border-b">
+      <div className="h-16 flex items-center px-5 border-b shrink-0">
         <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center mr-2 shadow-md">
           <UtensilsCrossed className="w-4 h-4 text-primary-foreground" />
         </div>
         <span className="font-bold text-lg">Meal<span className="text-gradient">Khata</span></span>
       </div>
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {items.map((it) => {
-          const isActive = it.end ? pathname === it.to : pathname?.startsWith(it.to);
-          return (
-            <Link
-              key={it.to}
-              href={it.to}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <it.icon className="w-4 h-4" />
-              {it.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto custom-scrollbar">
+        {groups.map((group) => (
+          <div key={group.group} className="space-y-1">
+            <h4 className="px-3 text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+              {group.group}
+            </h4>
+            <div className="space-y-1">
+              {group.items.map((it) => {
+                const isActive = it.end ? pathname === it.to : pathname?.startsWith(it.to);
+                return (
+                  <Link
+                    key={it.to}
+                    href={it.to}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all group",
+                      isActive
+                        ? "bg-primary/10 text-primary shadow-sm"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <it.icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                    {it.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
     </aside>
   );
@@ -92,16 +118,19 @@ export function AppSidebar() {
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const items = useNavItems();
-  // Pick 5 most useful for mobile
-  const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/profile"];
+  const groups = useNavItems();
+  
+  // Flatten all items and pick 5
+  const allItems = groups.flatMap(g => g.items);
+  const adminMobile = ["/app", "/app/meals", "/app/chat", "/app/balance", "/app/settings"];
   const boarderMobile = ["/me", "/me/bills", "/me/chat", "/me/daily-menu", "/me/profile"];
-  const isAdminList = items.some((i) => i.to === "/app");
-  const mobileSet = new Set(isAdminList ? adminMobile : boarderMobile);
-  const mobileItems = items.filter((i) => mobileSet.has(i.to));
+  
+  const isAdmin = pathname?.startsWith("/app");
+  const mobileSet = new Set(isAdmin ? adminMobile : boarderMobile);
+  const mobileItems = allItems.filter((i) => mobileSet.has(i.to)).slice(0, 5);
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t shadow-lg">
       <div className="grid h-16" style={{ gridTemplateColumns: `repeat(${mobileItems.length}, minmax(0, 1fr))` }}>
         {mobileItems.map((it) => {
           const active = it.end ? pathname === it.to : pathname?.startsWith(it.to);

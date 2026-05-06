@@ -19,6 +19,16 @@ export default function Settings() {
     bkash_number: "",
     nagad_number: "",
     bank_info: "",
+    // New fields for mess profile (to be synced with 'messes' table)
+    mess_name: "",
+    mess_address: "",
+    mess_phone: "",
+    // Recurring bills (stored as JSON in bank_info)
+    khala_bill: "0",
+    electricity_bill: "0",
+    wifi_bill: "0",
+    gas_bill: "0",
+    others_bill: "0",
   });
   const [saving, setSaving] = useState(false);
 
@@ -28,7 +38,7 @@ export default function Settings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mess_settings")
-        .select("*")
+        .select("*, messes(name, address, phone)")
         .eq("mess_id", messId!)
         .maybeSingle();
       if (error) throw error;
@@ -36,23 +46,30 @@ export default function Settings() {
     },
   });
 
-  const { data: mess } = useQuery({
-    queryKey: ["mess", messId],
-    enabled: !!messId,
-    queryFn: async () => {
-      const { data } = await supabase.from("messes").select("*").eq("id", messId!).maybeSingle();
-      return data;
-    },
-  });
-
   useEffect(() => {
     if (settings) {
+      let recurring = { khala: "0", electricity: "0", wifi: "0", gas: "0", others: "0" };
+      try {
+        if (settings.bank_info && settings.bank_info.startsWith("{")) {
+          const parsed = JSON.parse(settings.bank_info);
+          if (parsed.recurring) recurring = parsed.recurring;
+        }
+      } catch (e) {}
+
       setForm({
         default_meal_rate: String(settings.default_meal_rate ?? 0),
         low_balance_threshold: String(settings.low_balance_threshold ?? 100),
         bkash_number: settings.bkash_number ?? "",
         nagad_number: settings.nagad_number ?? "",
         bank_info: settings.bank_info ?? "",
+        mess_name: settings.messes?.name ?? "",
+        mess_address: settings.messes?.address ?? "",
+        mess_phone: settings.messes?.phone ?? "",
+        khala_bill: recurring.khala || "0",
+        electricity_bill: recurring.electricity || "0",
+        wifi_bill: recurring.wifi || "0",
+        gas_bill: recurring.gas || "0",
+        others_bill: recurring.others || "0",
       });
     }
   }, [settings]);
@@ -60,19 +77,40 @@ export default function Settings() {
   async function handleSave() {
     if (!messId) return;
     setSaving(true);
-    const { error } = await supabase
+    
+    const recurringData = {
+      recurring: {
+        khala: form.khala_bill,
+        electricity: form.electricity_bill,
+        wifi: form.wifi_bill,
+        gas: form.gas_bill,
+        others: form.others_bill,
+      }
+    };
+
+    const { error: settingsErr } = await supabase
       .from("mess_settings")
       .update({
         default_meal_rate: Number(form.default_meal_rate) || 0,
         low_balance_threshold: Number(form.low_balance_threshold) || 0,
         bkash_number: form.bkash_number || null,
         nagad_number: form.nagad_number || null,
-        bank_info: form.bank_info || null,
+        bank_info: JSON.stringify(recurringData),
       })
       .eq("mess_id", messId);
+
+    const { error: messErr } = await supabase
+      .from("messes")
+      .update({
+        name: form.mess_name,
+        address: form.mess_address || null,
+        phone: form.mess_phone || null,
+      })
+      .eq("id", messId);
+
     setSaving(false);
-    if (error) {
-      toast.error(error.message);
+    if (settingsErr || messErr) {
+      toast.error(settingsErr?.message || messErr?.message);
       return;
     }
     toast.success("Settings saved");
@@ -97,112 +135,148 @@ export default function Settings() {
   if (isLoading) return <Skeleton className="h-96 w-full rounded-2xl" />;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-2xl">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">{mess?.name}</p>
-      </div>
-
-      {/* Join Key */}
-      <div className="rounded-2xl border bg-card p-5 space-y-3">
+    <div className="space-y-6 animate-fade-in max-w-4xl">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">Mess Join Key</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Share this key with new boarders. They sign up and use it to request joining your mess.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">মেস সেটিংস</h1>
+          <p className="text-sm text-muted-foreground mt-1">মেসের যাবতীয় কনফিগারেশন এখান থেকে পরিচালনা করুন</p>
         </div>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 px-4 py-3 rounded-xl bg-muted font-mono text-lg tracking-wider text-center">
-            {settings?.join_key ?? "—"}
-          </code>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              navigator.clipboard.writeText(settings?.join_key ?? "");
-              toast.success("Copied");
-            }}
-          >
-            <Copy className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={regenerateKey} title="Regenerate">
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-        </div>
+        <Button onClick={handleSave} disabled={saving} className="gap-2 gradient-primary">
+          <Save className="w-4 h-4" />
+          {saving ? "সংরক্ষণ হচ্ছে..." : "সব পরিবর্তন সংরক্ষণ করুন"}
+        </Button>
       </div>
 
-      {/* Financial settings */}
-      <div className="rounded-2xl border bg-card p-5 space-y-4">
-        <h3 className="font-semibold">Financial</h3>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="rate">Default Meal Rate (৳)</Label>
-            <Input
-              id="rate"
-              type="number"
-              step="0.01"
-              value={form.default_meal_rate}
-              onChange={(e) => setForm({ ...form, default_meal_rate: e.target.value })}
-            />
-            <p className="text-[11px] text-muted-foreground">Used as fallback if no expenses yet this month.</p>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          {/* Mess Info */}
+          <div className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm">
+            <h3 className="font-semibold flex items-center gap-2 text-primary">
+              <Building2 className="w-4 h-4" /> মেস প্রোফাইল
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="mname">মেসের নাম</Label>
+                <Input id="mname" value={form.mess_name} onChange={(e) => setForm({ ...form, mess_name: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mphone">কন্টাক্ট নম্বর</Label>
+                <Input id="mphone" value={form.mess_phone} onChange={(e) => setForm({ ...form, mess_phone: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="maddr">ঠিকানা</Label>
+                <Textarea id="maddr" rows={2} value={form.mess_address} onChange={(e) => setForm({ ...form, mess_address: e.target.value })} />
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="lowbal">Low Balance Alert (৳)</Label>
-            <Input
-              id="lowbal"
-              type="number"
-              step="1"
-              value={form.low_balance_threshold}
-              onChange={(e) => setForm({ ...form, low_balance_threshold: e.target.value })}
-            />
-            <p className="text-[11px] text-muted-foreground">Boarder gets alert when balance falls below this.</p>
+
+          {/* Join Key */}
+          <div className="rounded-2xl border bg-card p-5 space-y-3 shadow-sm">
+            <div>
+              <h3 className="font-semibold">জয়েন কি (Join Key)</h3>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                নতুন মেম্বারদের এই কি-টি দিন। তারা সাইন-আপ করার সময় এটি ব্যবহার করে আপনার মেসে জয়েন করতে পারবে।
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 px-4 py-3 rounded-xl bg-muted font-mono text-lg tracking-wider text-center">
+                {settings?.join_key ?? "—"}
+              </code>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  navigator.clipboard.writeText(settings?.join_key ?? "");
+                  toast.success("কপি হয়েছে");
+                }}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={regenerateKey} title="নতুন কি তৈরি করুন">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Financial settings */}
+          <div className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm">
+            <h3 className="font-semibold flex items-center gap-2 text-primary">
+              <Calculator className="w-4 h-4" /> আর্থিক সেটিংস
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="rate">ডিফল্ট মিল রেট (৳)</Label>
+                <Input
+                  id="rate"
+                  type="number"
+                  step="0.01"
+                  value={form.default_meal_rate}
+                  onChange={(e) => setForm({ ...form, default_meal_rate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lowbal">লো ব্যালেন্স এলার্ট (৳)</Label>
+                <Input
+                  id="lowbal"
+                  type="number"
+                  step="1"
+                  value={form.low_balance_threshold}
+                  onChange={(e) => setForm({ ...form, low_balance_threshold: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Monthly Bills */}
+          <div className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm">
+            <h3 className="font-semibold flex items-center gap-2 text-primary">
+              <Zap className="w-4 h-4" /> অটোমেটিক মাসিক বিল (ফিক্সড)
+            </h3>
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              এই বিলগুলো প্রতি মাসে সবার মাঝে সমানভাবে ভাগ হবে। (এক্সট্রা বিল সেকশনে অটো-এড করার জন্য ব্যবহৃত হবে)
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs">খালা বিল</Label>
+                <Input type="number" value={form.khala_bill} onChange={(e) => setForm({ ...form, khala_bill: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">বিদ্যুৎ (ফিক্সড)</Label>
+                <Input type="number" value={form.electricity_bill} onChange={(e) => setForm({ ...form, electricity_bill: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">ওয়াইফাই</Label>
+                <Input type="number" value={form.wifi_bill} onChange={(e) => setForm({ ...form, wifi_bill: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">গ্যাস বিল</Label>
+                <Input type="number" value={form.gas_bill} onChange={(e) => setForm({ ...form, gas_bill: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment numbers */}
+          <div className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm">
+            <h3 className="font-semibold">পেমেন্ট নম্বরসমূহ</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="bkash">bKash</Label>
+                <Input id="bkash" placeholder="01XXXXXXXXX" value={form.bkash_number} onChange={(e) => setForm({ ...form, bkash_number: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="nagad">Nagad</Label>
+                <Input id="nagad" placeholder="01XXXXXXXXX" value={form.nagad_number} onChange={(e) => setForm({ ...form, nagad_number: e.target.value })} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Payment numbers */}
-      <div className="rounded-2xl border bg-card p-5 space-y-4">
-        <h3 className="font-semibold">Payment Numbers</h3>
-        <p className="text-xs text-muted-foreground -mt-2">
-          Boarders will see these to send deposits.
-        </p>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="bkash">bKash Number</Label>
-            <Input
-              id="bkash"
-              placeholder="01XXXXXXXXX"
-              value={form.bkash_number}
-              onChange={(e) => setForm({ ...form, bkash_number: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nagad">Nagad Number</Label>
-            <Input
-              id="nagad"
-              placeholder="01XXXXXXXXX"
-              value={form.nagad_number}
-              onChange={(e) => setForm({ ...form, nagad_number: e.target.value })}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bank">Bank Account Info</Label>
-          <Textarea
-            id="bank"
-            rows={2}
-            placeholder="Bank name, account number, branch..."
-            value={form.bank_info}
-            onChange={(e) => setForm({ ...form, bank_info: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <Button onClick={handleSave} disabled={saving} className="gap-2">
-        <Save className="w-4 h-4" />
-        {saving ? "Saving..." : "Save Settings"}
-      </Button>
     </div>
+  );
+}
+
   );
 }
