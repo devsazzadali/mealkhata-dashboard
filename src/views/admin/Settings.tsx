@@ -29,6 +29,10 @@ export default function Settings() {
     wifi_bill: "0",
     gas_bill: "0",
     others_bill: "0",
+    // Rice settings (stored as JSON in bank_info)
+    rice_per_meal_breakfast: "0",
+    rice_per_meal_lunch: "0",
+    rice_per_meal_dinner: "0",
   });
   const [saving, setSaving] = useState(false);
 
@@ -49,10 +53,12 @@ export default function Settings() {
   useEffect(() => {
     if (settings) {
       let recurring = { khala: "0", electricity: "0", wifi: "0", gas: "0", others: "0" };
+      let rice = { breakfast: "0", lunch: "0", dinner: "0" };
       try {
         if (settings.bank_info && settings.bank_info.startsWith("{")) {
           const parsed = JSON.parse(settings.bank_info);
           if (parsed.recurring) recurring = parsed.recurring;
+          if (parsed.rice) rice = parsed.rice;
         }
       } catch (e) {}
 
@@ -70,6 +76,9 @@ export default function Settings() {
         wifi_bill: recurring.wifi || "0",
         gas_bill: recurring.gas || "0",
         others_bill: recurring.others || "0",
+        rice_per_meal_breakfast: rice.breakfast || "0",
+        rice_per_meal_lunch: rice.lunch || "0",
+        rice_per_meal_dinner: rice.dinner || "0",
       });
     }
   }, [settings]);
@@ -85,6 +94,11 @@ export default function Settings() {
         wifi: form.wifi_bill,
         gas: form.gas_bill,
         others: form.others_bill,
+      },
+      rice: {
+        breakfast: form.rice_per_meal_breakfast,
+        lunch: form.rice_per_meal_lunch,
+        dinner: form.rice_per_meal_dinner,
       }
     };
 
@@ -254,6 +268,30 @@ export default function Settings() {
               <div className="space-y-1">
                 <Label className="text-xs">গ্যাস বিল</Label>
                 <Input type="number" value={form.gas_bill} onChange={(e) => setForm({ ...form, gas_bill: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          {/* Rice Settings */}
+          <div className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm">
+            <h3 className="font-semibold flex items-center gap-2 text-primary">
+              <Wheat className="w-4 h-4" /> চাউল খরচ সেটিংস (প্রতি মিল)
+            </h3>
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              প্রতি মিলের জন্য কত গ্রাম চাউল খরচ হয় তা সেট করুন। মিল এন্ট্রি করার সময় এটি মেম্বারের ব্যালেন্স থেকে কাটা হবে।
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">সকাল (গ্রাম)</Label>
+                <Input type="number" value={form.rice_per_meal_breakfast} onChange={(e) => setForm({ ...form, rice_per_meal_breakfast: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">দুপুর (গ্রাম)</Label>
+                <Input type="number" value={form.rice_per_meal_lunch} onChange={(e) => setForm({ ...form, rice_per_meal_lunch: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">রাত (গ্রাম)</Label>
+                <Input type="number" value={form.rice_per_meal_dinner} onChange={(e) => setForm({ ...form, rice_per_meal_dinner: e.target.value })} />
               </div>
             </div>
           </div>

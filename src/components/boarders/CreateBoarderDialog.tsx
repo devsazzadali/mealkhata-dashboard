@@ -24,6 +24,7 @@ const schema = z.object({
   guardian_phone: z.string().optional().or(z.literal("")),
   seat_number: z.string().max(20).optional().or(z.literal("")),
   monthly_deposit: z.coerce.number().min(0).optional(),
+  rice_balance: z.coerce.number().min(0).optional(),
   notes: z.string().max(300).optional().or(z.literal("")),
 });
 type Vals = z.infer<typeof schema>;
@@ -39,7 +40,7 @@ export function CreateBoarderDialog({ open, onOpenChange }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<Vals>({
     resolver: zodResolver(schema),
-    defaultValues: { monthly_deposit: 0 },
+    defaultValues: { monthly_deposit: 0, rice_balance: 0 },
   });
 
   const onSubmit = async (vals: Vals) => {
@@ -62,6 +63,7 @@ export function CreateBoarderDialog({ open, onOpenChange }: Props) {
           guardian_phone: vals.guardian_phone || undefined,
           seat_number: vals.seat_number || undefined,
           monthly_deposit: vals.monthly_deposit ?? 0,
+          rice_balance: vals.rice_balance ?? 0,
           notes: vals.notes || undefined,
         }),
       });
@@ -103,7 +105,10 @@ export function CreateBoarderDialog({ open, onOpenChange }: Props) {
             <Field id="guardian_name" label="Guardian Name" reg={register("guardian_name")} err={errors.guardian_name?.message} />
             <Field id="guardian_phone" label="Guardian Phone" reg={register("guardian_phone")} err={errors.guardian_phone?.message} />
           </div>
-          <Field id="monthly_deposit" type="number" label="Monthly Deposit (৳)" reg={register("monthly_deposit")} err={errors.monthly_deposit?.message} />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field id="monthly_deposit" type="number" label="Monthly Deposit (৳)" reg={register("monthly_deposit")} err={errors.monthly_deposit?.message} />
+            <Field id="rice_balance" type="number" label="Initial Rice (Gram)" reg={register("rice_balance")} err={errors.rice_balance?.message} />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" rows={2} {...register("notes")} />

@@ -15,6 +15,7 @@ interface CreateBoarderBody {
   room_id?: string | null;
   seat_number?: string;
   monthly_deposit?: number;
+  rice_balance?: number;
   notes?: string;
 }
 
@@ -133,6 +134,7 @@ Deno.serve(async (req) => {
         room_id: body.room_id || null,
         seat_number: body.seat_number || null,
         monthly_deposit: body.monthly_deposit ?? 0,
+        rice_balance: body.rice_balance ?? 0,
         notes: body.notes || null,
       })
       .select()

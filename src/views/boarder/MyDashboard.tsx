@@ -47,6 +47,7 @@ export default function MyDashboard() {
         supabase.from("notices").select("*").eq("mess_id", boarder.mess_id).order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(3),
         supabase.from("meal_requests").select("*").eq("user_id", userId!).order("created_at", { ascending: false }).limit(10),
         supabase.from("messes").select("name").eq("id", boarder.mess_id).maybeSingle(),
+        supabase.from("bazar_schedule").select("*").eq("mess_id", boarder.mess_id).eq("schedule_date", now.toISOString().slice(0, 10)).or(`boarder_id.eq.${boarder.id},boarder_id2.eq.${boarder.id}`),
       ]);
       const totalMeals = (meals.data ?? []).reduce(
         (s, m) => s + Number(m.breakfast) + Number(m.lunch) + Number(m.dinner) + Number(m.guest ?? 0),
@@ -59,6 +60,7 @@ export default function MyDashboard() {
         boarder, totalMeals, monthDeposit, mealRate,
         settings: settingsRes.data, notices: noticesRes.data ?? [],
         requests: requestsRes.data ?? [], messName: messRes.data?.name ?? "",
+        bazarToday: bazarRes.data ?? [],
       };
     },
   });
@@ -83,7 +85,7 @@ export default function MyDashboard() {
     );
   }
 
-  const { boarder, totalMeals, monthDeposit, mealRate, settings, notices, requests, messName } = data;
+  const { boarder, totalMeals, monthDeposit, mealRate, settings, notices, requests, messName, bazarToday } = data;
   const balance = Number(boarder.balance);
   const monthCost = totalMeals * mealRate;
   const liveNet = monthDeposit - monthCost;
@@ -131,14 +133,44 @@ export default function MyDashboard() {
       </div>
 
       {/* Balance hero */}
-      <div className="rounded-2xl p-6 gradient-hero text-primary-foreground shadow-glow">
-        <p className="text-xs uppercase tracking-wider opacity-80">বর্তমান ব্যালেন্স</p>
-        <p className="text-4xl font-bold mt-2 tabular-nums">{formatBdt(balance)}</p>
-        <p className="text-xs mt-2 opacity-90">
-          এই মাসে live: {formatBdt(liveNet)} ({totalMeals} meals × {formatBdt(mealRate)})
-        </p>
-        {balance < 0 && <p className="text-xs mt-2 opacity-90 font-medium">⚠ আপনার বকেয়া আছে — দ্রুত deposit দিন।</p>}
+      <div className="rounded-2xl p-6 gradient-hero text-primary-foreground shadow-glow grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">টাকা ব্যালেন্স</p>
+          <p className="text-3xl font-bold mt-1 tabular-nums">{formatBdt(balance)}</p>
+        </div>
+        <div className="text-right border-l border-white/20 pl-4">
+          <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">চাউল ব্যালেন্স</p>
+          <p className="text-3xl font-bold mt-1 tabular-nums">
+            {Number(boarder.rice_balance || 0).toLocaleString()} <span className="text-xs font-normal">গ্রাম</span>
+          </p>
+        </div>
+        <div className="col-span-2 pt-2 border-t border-white/10 mt-1">
+          <p className="text-[11px] opacity-90">
+            এই মাসে live: {formatBdt(liveNet)} ({totalMeals} meals × {formatBdt(mealRate)})
+          </p>
+          {balance < 0 && <p className="text-[11px] mt-1 opacity-100 font-bold text-yellow-200">⚠ আপনার বকেয়া আছে — দ্রুত টাকা জমা দিন।</p>}
+        </div>
       </div>
+
+      {/* Bazar Alert */}
+      {bazarToday && bazarToday.length > 0 && (
+        <div className="rounded-2xl border-2 border-primary bg-primary/5 p-5 shadow-sm animate-pulse-subtle">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-primary">আজ আপনার বাজার! 🛒</h3>
+              <p className="text-sm text-muted-foreground">আজকের জন্য আপনার বাজার শিডিউল বরাদ্দ আছে।</p>
+            </div>
+          </div>
+          {bazarToday[0].notes && (
+            <p className="mt-3 text-sm bg-muted/50 p-2 rounded-lg border border-dashed font-medium italic">
+              নোট: {bazarToday[0].notes}
+            </p>
+          )}
+        </div>
+      )}
 
       {isLowBalance && (
         <div className="rounded-2xl border border-warning/50 bg-warning/10 p-4 flex items-start gap-3">

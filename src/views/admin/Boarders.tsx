@@ -115,11 +115,19 @@ export default function Boarders() {
                     {b.seat_number && <span>Seat {b.seat_number}</span>}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold tabular-nums ${balance < 0 ? "text-destructive" : "text-success"}`}>
-                    {formatBdt(balance)}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Balance</p>
+                <div className="text-right flex flex-col items-end gap-1 px-2">
+                  <div className="flex flex-col items-end">
+                    <p className={`font-bold tabular-nums text-sm ${balance < 0 ? "text-destructive" : "text-success"}`}>
+                      {formatBdt(balance)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">টাকা</p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="font-bold tabular-nums text-sm text-primary">
+                      {Number(b.rice_balance || 0).toLocaleString()} <span className="text-[10px] font-normal">গ্রাম</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">চাউল</p>
+                  </div>
                 </div>
                 <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => setConfirmDelete(b.id)}>
                   <Trash2 className="w-4 h-4" />

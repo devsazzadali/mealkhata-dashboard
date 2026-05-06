@@ -22,6 +22,7 @@ export default function BazarSchedule() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [boarderId, setBoarderId] = useState("");
+  const [boarderId2, setBoarderId2] = useState("");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState("");
 
@@ -41,7 +42,7 @@ export default function BazarSchedule() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bazar_schedule")
-        .select("*, boarders(full_name)")
+        .select("*, boarder1:boarders!bazar_schedule_boarder_id_fkey(full_name), boarder2:boarders!bazar_schedule_boarder_id2_fkey(full_name)")
         .eq("mess_id", messId!)
         .order("schedule_date", { ascending: true });
       if (error) throw error;
@@ -50,13 +51,17 @@ export default function BazarSchedule() {
   });
 
   const add = async () => {
-    if (!boarderId || !date || !messId) return toast.error("সব ফিল্ড পূরণ করুন");
+    if (!boarderId || !date || !messId) return toast.error("কমপক্ষে একজন সদস্য এবং তারিখ প্রয়োজন");
     const { error } = await supabase.from("bazar_schedule").insert({
-      mess_id: messId, boarder_id: boarderId, schedule_date: date, notes: notes || null,
+      mess_id: messId, 
+      boarder_id: boarderId, 
+      boarder_id2: boarderId2 || null,
+      schedule_date: date, 
+      notes: notes || null,
     });
     if (error) return toast.error(error.message);
     toast.success("শিডিউল যোগ হয়েছে");
-    setOpen(false); setBoarderId(""); setNotes("");
+    setOpen(false); setBoarderId(""); setBoarderId2(""); setNotes("");
     qc.invalidateQueries({ queryKey: ["bazar-schedule", messId] });
   };
 
@@ -87,8 +92,18 @@ export default function BazarSchedule() {
               <div className="space-y-1.5">
                 <Label>সদস্য</Label>
                 <Select value={boarderId} onValueChange={setBoarderId}>
-                  <SelectTrigger><SelectValue placeholder="সদস্য বাছাই" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="প্রথম সদস্য" /></SelectTrigger>
                   <SelectContent>
+                    {boarders?.map((b: any) => <SelectItem key={b.id} value={b.id}>{b.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>সদস্য ২ (ঐচ্ছিক)</Label>
+                <Select value={boarderId2} onValueChange={setBoarderId2}>
+                  <SelectTrigger><SelectValue placeholder="দ্বিতীয় সদস্য বাছাই (যদি থাকে)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">কেউ না</SelectItem>
                     {boarders?.map((b: any) => <SelectItem key={b.id} value={b.id}>{b.full_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -117,9 +132,12 @@ export default function BazarSchedule() {
           {data.map((s: any) => (
             <div key={s.id} className="rounded-2xl border bg-card p-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <p className="font-medium">{s.boarders?.full_name}</p>
+                <p className="font-medium">
+                  {s.boarder1?.full_name}
+                  {s.boarder2?.full_name && ` & ${s.boarder2.full_name}`}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(s.schedule_date), "dd MMM yyyy")}
+                  {format(new Date(s.schedule_date), "EEEE, dd MMM yyyy")}
                   {s.notes && ` · ${s.notes}`}
                 </p>
               </div>
